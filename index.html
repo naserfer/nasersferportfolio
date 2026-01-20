@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Portfolio de Naser Fernández - Desarrollador Full Stack especializado en Angular, React, Next.js, Node.js, Supabase y MySQL">
+    <title>Naser Fernández | Desarrollador Full Stack</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- GSAP CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/TextPlugin.min.js"></script>
+    <!-- Lenis Smooth Scroll (disabled - causing conflicts) -->
+    <!-- <script src="https://cdn.jsdelivr.net/gh/studio-freight/lenis@1.0.27/bundled/lenis.min.js"></script> -->
+</head>
+<body>
+    <!-- Loading Screen (legacy - can be removed after testing) -->
+    <div class="loading-screen" id="loadingScreen" style="display: none;">
+        <!-- Binary/Code Particles Background -->
+        <div class="code-particles" id="codeParticles"></div>
+        
+        <div class="loading-content">
+            <div class="loading-name-container">
+                <div class="loading-name" id="loadingName"></div>
+                <div class="loading-name-glitch" id="loadingNameGlitch"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Particle Background -->
+    <div class="particles" id="particles"></div>
+    
+    <!-- Glitch Effect Overlay -->
+    <div class="glitch-overlay"></div>
+    
+    <!-- Scroll Progress Bar (Right Side) -->
+    <div class="scroll-progress-container">
+        <div class="scroll-progress-bar">
+            <div class="scroll-progress-fill" id="scrollProgress"></div>
+        </div>
+    </div>
+    
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <span class="logo-text">&lt;NF/&gt;</span>
+            </div>
+            <div class="theme-toggle" id="themeToggle" aria-label="Toggle dark/light mode">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="4"></circle>
+                    <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path>
+                </svg>
+            </div>
+            <ul class="nav-menu" id="navMenu">
+                <li><a href="#home" class="nav-link active">Inicio</a></li>
+                <li><a href="#about" class="nav-link">Sobre Mí</a></li>
+                <li><a href="#skills" class="nav-link">Habilidades</a></li>
+                <li><a href="#projects" class="nav-link">Proyectos</a></li>
+                <li><a href="#experience" class="nav-link">Experiencia</a></li>
+                <li><a href="#contact" class="nav-link">Contacto</a></li>
+            </ul>
+            <div class="hamburger" id="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero">
+        <div class="hero-background">
+            <div class="gradient-orb orb-1"></div>
+            <div class="gradient-orb orb-2"></div>
+            <div class="gradient-orb orb-3"></div>
+        </div>
+        <div class="hero-content">
+            <div class="hero-text">
+                <p class="hero-greeting">Hola, soy</p>
+                <h1 class="hero-name">
+                    <span class="name-highlight">Naser</span> Fernández
+                </h1>
+                <div class="hero-role">
+                    <span class="typing-text" id="typingText"></span>
+                    <span class="cursor">|</span>
+                </div>
+                <p class="hero-description">
+                    Desarrollador Full Stack con 4 años de experiencia creando 
+                    aplicaciones web y móviles completas que impactan a miles de usuarios.
+                </p>
+                <div class="hero-buttons">
+                    <a href="#projects" class="btn btn-primary">Ver Proyectos</a>
+                    <a href="#contact" class="btn btn-secondary">Contáctame</a>
+                </div>
+                <div class="social-links">
+                    <a href="https://www.linkedin.com/in/naser-fernandez-mancia-67b841289" target="_blank" rel="noopener noreferrer" class="social-link linkedin-link" aria-label="LinkedIn">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
+                        </svg>
+                        <span class="social-text">LinkedIn</span>
+                    </a>
+                </div>
+            </div>
+            <div class="hero-visual">
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-dot"></span>
+                        <span class="code-dot"></span>
+                        <span class="code-dot"></span>
+                        <span class="code-title">profile.ts</span>
+                    </div>
+                    <div class="code-content">
+                        <div class="code-line"><span class="code-keyword">const</span> <span class="code-variable">developer</span> = {</div>
+                        <div class="code-line">  <span class="code-property">name</span>: <span class="code-string">'Naser Fernández'</span>,</div>
+                        <div class="code-line">  <span class="code-property">role</span>: <span class="code-string">'Full Stack Developer'</span>,</div>
+                        <div class="code-line">  <span class="code-property">skills</span>: [<span class="code-string">'Angular'</span>, <span class="code-string">'React'</span>, <span class="code-string">'Node.js'</span>, <span class="code-string">'Supabase'</span>],</div>
+                        <div class="code-line">  <span class="code-property">tools</span>: [<span class="code-string">'Claude Sonnet'</span>, <span class="code-string">'GitHub Copilot'</span>],</div>
+                        <div class="code-line">  <span class="code-property">experience</span>: <span class="code-number">4</span> <span class="code-operator">+</span> <span class="code-string">' años'</span>,</div>
+                        <div class="code-line">  <span class="code-property">location</span>: <span class="code-string">'Paraguay'</span></div>
+                        <div class="code-line">};</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="scroll-indicator">
+            <div class="mouse">
+                <div class="wheel"></div>
+            </div>
+            <div class="arrow"></div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="about">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-number">01.</span>
+                <h2 class="section-title">Sobre Mí</h2>
+                <div class="section-line"></div>
+            </div>
+            <div class="about-content">
+                <div class="about-text">
+                    <p>
+                        Soy un <strong>Desarrollador Full Stack</strong> apasionado por crear experiencias digitales 
+                        completas de extremo a extremo. Con 4 años de experiencia, me especializo en construir aplicaciones 
+                        web y móviles modernas, escalables y optimizadas, desde el frontend hasta el backend y base de datos.
+                    </p>
+                    <p>
+                        Actualmente formo parte del equipo de <strong>Konecta</strong>, desarrollando aplicaciones 
+                        críticas para <strong>Personal</strong> que impactan a miles de usuarios diariamente. 
+                        Trabajo principalmente con <strong>Angular</strong>, <strong>React</strong>, <strong>Next.js</strong>, 
+                        <strong>Node.js</strong>, <strong>Supabase</strong>, <strong>MySQL</strong> y <strong>Flutter</strong>.
+                    </p>
+                    <p>
+                        También tengo mi propia <strong>fábrica de software</strong> como freelance, donde diseño 
+                        y desarrollo soluciones a medida utilizando la tecnología que mejor se adapte a cada proyecto.
+                        Utilizo herramientas de IA como <strong>Claude Sonnet</strong> y <strong>GitHub Copilot</strong> 
+                        para optimizar mi flujo de trabajo y acelerar el desarrollo.
+                    </p>
+                    <div class="about-stats">
+                        <div class="stat-item">
+                            <div class="stat-number" data-target="4">0</div>
+                            <div class="stat-label">Años de Experiencia</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="about-image">
+                    <div class="image-wrapper">
+                        <img src="images/foto-perfil.png" alt="Naser Fernández - Desarrollador Full Stack" class="profile-image" 
+                             onerror="this.onerror=null; this.style.display='none'; const placeholder = this.nextElementSibling; if(placeholder) placeholder.style.display='flex';">
+                        <div class="image-placeholder" style="display: none;">
+                            <svg width="200" height="200" viewBox="0 0 200 200" fill="none">
+                                <circle cx="100" cy="100" r="80" stroke="currentColor" stroke-width="2"/>
+                                <circle cx="100" cy="85" r="20" fill="currentColor"/>
+                                <path d="M60 140 Q100 120 140 140" stroke="currentColor" stroke-width="3" fill="none"/>
+                            </svg>
+                            <p>Agrega tu foto en<br>images/foto-perfil.jpg</p>
+                        </div>
+                        <div class="image-border"></div>
+                        <div class="image-glow"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Skills Section -->
+    <section id="skills" class="skills">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-number">02.</span>
+                <h2 class="section-title">Habilidades Técnicas</h2>
+                <div class="section-line"></div>
+            </div>
+            <div class="skills-grid">
+                <div class="skill-category">
+                    <h3 class="category-title">Frontend Web</h3>
+                    <div class="skill-items">
+                        <div class="skill-item">
+                            <div class="skill-info">
+                                <span class="skill-name">Angular</span>
+                                <span class="skill-percentage">90%</span>
+                            </div>
+                            <div class="skill-bar">
+                                <div class="skill-progress" data-width="90"></div>
+                            </div>
+                        </div>
+                        <div class="skill-item">
+                            <div class="skill-info">
+                                <span class="skill-name">React</span>
+                                <span class="skill-percentage">85%</span>
+                            </div>
+                            <div class="skill-bar">
+                                <div class="skill-progress" data-width="85"></div>
+                            </div>
+                        </div>
+                        <div class="skill-item">
+                            <div class="skill-info">
+                                <span class="skill-name">Next.js</span>
+                                <span class="skill-percentage">80%</span>
+                            </div>
+                            <div class="skill-bar">
+                                <div class="skill-progress" data-width="80"></div>
+                            </div>
+                        </div>
+                        <div class="skill-item">
+                            <div class="skill-info">
+                                <span class="skill-name">TypeScript</span>
+                                <span class="skill-percentage">88%</span>
+                            </div>
+                            <div class="skill-bar">
+                                <div class="skill-progress" data-width="88"></div>
+                            </div>
+                        </div>
+                        <div class="skill-item">
+                            <div class="skill-info">
+                                <span class="skill-name">JavaScript</span>
+                                <span class="skill-percentage">92%</span>
+                            </div>
+                            <div class="skill-bar">
+                                <div class="skill-progress" data-width="92"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="skill-category">
+                    <h3 class="category-title">Backend & Base de Datos</h3>
+                    <div class="skill-items">
+                        <div class="skill-item">
+                            <div class="skill-info">
+                                <span class="skill-name">Node.js</span>
+                                <span class="skill-percentage">85%</span>
+                            </div>
+                            <div class="skill-bar">
+                                <div class="skill-progress" data-width="85"></div>
+                            </div>
+                        </div>
+                        <div class="skill-item">
+                            <div class="skill-info">
+                                <span class="skill-name">REST APIs</span>
+                                <span class="skill-percentage">88%</span>
+                            </div>
+                            <div class="skill-bar">
+                                <div class="skill-progress" data-width="88"></div>
+                            </div>
+                        </div>
+                        <div class="skill-item">
+                            <div class="skill-info">
+                                <span class="skill-name">Supabase</span>
+                                <span class="skill-percentage">80%</span>
+                            </div>
+                            <div class="skill-bar">
+                                <div class="skill-progress" data-width="80"></div>
+                            </div>
+                        </div>
+                        <div class="skill-item">
+                            <div class="skill-info">
+                                <span class="skill-name">MySQL</span>
+                                <span class="skill-percentage">83%</span>
+                            </div>
+                            <div class="skill-bar">
+                                <div class="skill-progress" data-width="83"></div>
+                            </div>
+                        </div>
+                        <div class="skill-item">
+                            <div class="skill-info">
+                                <span class="skill-name">SQL / Database Design</span>
+                                <span class="skill-percentage">85%</span>
+                            </div>
+                            <div class="skill-bar">
+                                <div class="skill-progress" data-width="85"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="skill-category">
+                    <h3 class="category-title">Mobile & Otros</h3>
+                    <div class="skill-items">
+                        <div class="skill-item">
+                            <div class="skill-info">
+                                <span class="skill-name">Flutter</span>
+                                <span class="skill-percentage">85%</span>
+                            </div>
+                            <div class="skill-bar">
+                                <div class="skill-progress" data-width="85"></div>
+                            </div>
+                        </div>
+                        <div class="skill-item">
+                            <div class="skill-info">
+                                <span class="skill-name">React Native</span>
+                                <span class="skill-percentage">75%</span>
+                            </div>
+                            <div class="skill-bar">
+                                <div class="skill-progress" data-width="75"></div>
+                            </div>
+                        </div>
+                        <div class="skill-item">
+                            <div class="skill-info">
+                                <span class="skill-name">RxJS / NgRx</span>
+                                <span class="skill-percentage">82%</span>
+                            </div>
+                            <div class="skill-bar">
+                                <div class="skill-progress" data-width="82"></div>
+                            </div>
+                        </div>
+                        <div class="skill-item">
+                            <div class="skill-info">
+                                <span class="skill-name">State Management</span>
+                                <span class="skill-percentage">85%</span>
+                            </div>
+                            <div class="skill-bar">
+                                <div class="skill-progress" data-width="85"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="tech-tags">
+                <span class="tech-tag with-logo" title="Vercel">
+                    <svg width="20" height="20" viewBox="0 0 76 65" fill="currentColor"><path d="M37.5274 0L75.0548 65H0L37.5274 0Z"/></svg>
+                    <span>Vercel</span>
+                </span>
+                <span class="tech-tag with-logo" title="Git">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M23.546 10.93L13.067.452c-.604-.603-1.582-.603-2.188 0L8.708 2.627l2.76 2.76c.645-.215 1.379-.07 1.889.441.516.515.658 1.258.438 1.912l2.658 2.66c.644-.22 1.387-.078 1.9.435.721.72.721 1.884 0 2.604-.719.719-1.881.719-2.6 0-.539-.541-.674-1.337-.404-2.003L12.86 8.955v6.525c.176.086.342.203.488.348.713.721.713 1.883 0 2.6-.719.721-1.889.721-2.609 0-.719-.719-.719-1.879 0-2.598.182-.18.387-.316.605-.406V8.835c-.217-.091-.424-.222-.6-.401-.545-.545-.676-1.342-.396-2.009L7.636 3.7.45 10.881c-.6.605-.6 1.584 0 2.189l10.484 10.477c.604.604 1.582.604 2.186 0l10.43-10.43c.605-.603.605-1.582 0-2.187"/></svg>
+                    <span>Git</span>
+                </span>
+                <span class="tech-tag with-logo" title="GitHub">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+                    <span>GitHub</span>
+                </span>
+                <span class="tech-tag with-logo" title="npm">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M0 7.334v8h6.666v1.332H12v-1.332h12v-8H0zm6.666 6.666H5.334v-4H3.999v4H1.335V8.667h5.331v5.333zm4 0v1.336H8.001V8.667h5.334v5.332h-2.669v-.001zm12.001 0h-1.33v-4h-1.336v4h-1.335v-4h-1.33v4h-2.671V8.667h8.002v5.333zM10.665 10H12v2.667h-1.335V10z"/></svg>
+                    <span>npm</span>
+                </span>
+                <span class="tech-tag with-logo" title="Next.js">
+                    <svg width="20" height="20" viewBox="0 0 394 80" fill="currentColor"><path d="M262 0h68.5v12.7h-27.2v66.6h-13.6V12.7H262V0zM149 0l-27.2 15.3L149 30.6V0zm-27.2 62.7L149 47.4v31.9h-68.5l27.2-16.6h27.2zM81 0L53.8 15.3 81 30.6V0zM0 0v12.7h13.6v53.9h13.6V12.7H41V0H0zm298.5 47.4L336 80h-37.5l-37.5-32.6h37.5z"/></svg>
+                    <span>Next.js</span>
+                </span>
+                <span class="tech-tag with-logo" title="Node.js">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M11.998 24c-2.246 0-4.095-.608-5.548-1.823l1.2-1.512c1.152.885 2.594 1.329 4.348 1.329 3.624 0 5.448-2.157 5.448-5.99V8.667h2.39v7.718c0 3.929-2.159 5.95-6.838 5.615zm-2.88-5.99c0 1.047-.747 1.562-2.246 1.562-1.142 0-2.05-.299-2.728-.892l-1.2 1.514c.991.889 2.287 1.332 3.928 1.332 2.746 0 4.247-1.404 4.247-4.05v-7.213h2.391v7.747zm11.626-.993c-1.193 0-2.044-.513-2.544-1.534-.495-1.015-.742-2.468-.742-4.355 0-1.887.247-3.34.742-4.356.5-1.02 1.35-1.533 2.544-1.533.732 0 1.366.141 1.896.426l.568-2.268c-.73-.317-1.591-.476-2.587-.476-2.093 0-3.672 1.05-4.733 3.15-.531 1.05-.797 2.485-.797 4.302 0 1.822.266 3.257.797 4.307 1.061 2.1 2.64 3.15 4.733 3.15.996 0 1.857-.159 2.587-.475l-.568-2.27c-.53.285-1.164.426-1.896.426z"/></svg>
+                    <span>Node.js</span>
+                </span>
+                <span class="tech-tag with-logo" title="Tailwind CSS">
+                    <svg width="20" height="20" viewBox="0 0 54 33" fill="currentColor"><path d="M27 0c-7.2 0-11.7 3.6-13.5 10.8 2.7-3.6 5.85-4.95 9.45-4.05 2.054.513 3.522 2.004 5.147 3.653C30.744 13.09 33.808 16.2 40.5 16.2c7.2 0 11.7-3.6 13.5-10.8-2.7 3.6-5.85 4.95-9.45 4.05-2.054-.513-3.522-2.004-5.147-3.653C36.756 3.11 33.692 0 27 0zM13.5 16.2C6.3 16.2 1.8 19.8 0 27c2.7-3.6 5.85-4.95 9.45-4.05 2.054.514 3.522 2.004 5.147 3.653C17.244 29.29 20.308 32.4 27 32.4c7.2 0 11.7-3.6 13.5-10.8-2.7 3.6-5.85 4.95-9.45 4.05-2.054-.513-3.522-2.004-5.147-3.653C23.256 19.31 20.192 16.2 13.5 16.2z"/></svg>
+                    <span>Tailwind CSS</span>
+                </span>
+                <span class="tech-tag with-logo" title="Material UI">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M0 2.475v10.39l3 1.733V7.67l6 3.465 6-3.465v3.465l-6 3.463v3.464l6 3.463v3.464l-6-3.463L0 20.61v-3.465l3-1.733v-3.465l-3 1.733V2.475zm21 0L9 8.804v6.392l3 1.733V10.267l6-3.465v3.465l-6 3.463v6.928l6-3.463v-3.465l6-3.465V2.475z"/></svg>
+                    <span>Material UI</span>
+                </span>
+                <span class="tech-tag with-logo" title="React.js">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><ellipse cx="12" cy="12" rx="11" ry="4.2"/><ellipse cx="12" cy="12" rx="11" ry="4.2" transform="rotate(60 12 12)"/><ellipse cx="12" cy="12" rx="11" ry="4.2" transform="rotate(120 12 12)"/><circle cx="12" cy="12" r="2" fill="currentColor"/></svg>
+                    <span>React.js</span>
+                </span>
+                <span class="tech-tag">HTML5</span>
+                <span class="tech-tag">CSS3</span>
+                <span class="tech-tag">SASS</span>
+                <span class="tech-tag">Express</span>
+                <span class="tech-tag">Supabase</span>
+                <span class="tech-tag">MySQL</span>
+                <span class="tech-tag">SQL</span>
+                <span class="tech-tag">PostgreSQL</span>
+                <span class="tech-tag">Dart</span>
+                <span class="tech-tag">Responsive Design</span>
+                <span class="tech-tag">Material Design</span>
+                <span class="tech-tag">Scrum/Kanban</span>
+                <span class="tech-tag">Figma</span>
+                <span class="tech-tag">Jira</span>
+                <span class="tech-tag">Claude Sonnet</span>
+                <span class="tech-tag">GitHub Copilot</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Projects Section -->
+    <section id="projects" class="projects">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-number">03.</span>
+                <h2 class="section-title">Proyectos Destacados</h2>
+                <div class="section-line"></div>
+            </div>
+            <div class="projects-grid">
+                <div class="project-card">
+                    <div class="project-image">
+                        <img src="https://image.thum.io/get/width/800/crop/600/noanimate/https://lomiteria1-0.vercel.app/" alt="LomiPos - Sistema POS" loading="lazy" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                        <div class="project-placeholder" style="display: none;">
+                            <svg width="60" height="60" viewBox="0 0 60 60" fill="none">
+                                <rect x="10" y="10" width="40" height="40" rx="4" stroke="currentColor" stroke-width="2"/>
+                                <rect x="18" y="18" width="24" height="4" fill="currentColor"/>
+                                <rect x="18" y="26" width="20" height="4" fill="currentColor"/>
+                                <rect x="18" y="34" width="24" height="4" fill="currentColor"/>
+                            </svg>
+                        </div>
+                        <div class="project-overlay">
+                            <a href="https://lomiteria1-0.vercel.app/" class="project-link" target="_blank" rel="noopener noreferrer" aria-label="Ver demo en vivo">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                                    <polyline points="15 3 21 3 21 9"></polyline>
+                                    <line x1="10" y1="14" x2="21" y2="3"></line>
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="project-content">
+                        <h3 class="project-title">LomiPos</h3>
+                        <p class="project-description">
+                            Sistema POS (Point of Sale) completo para gestión de negocios. Permite tomar pedidos en segundos, 
+                            generar reportes detallados en tiempo real y analizar ventas. Rápido, eficiente y moderno.
+                        </p>
+                        <div class="project-tech">
+                            <span>Next.js</span>
+                            <span>React</span>
+                            <span>JavaScript</span>
+                            <span>Vercel</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="project-card">
+                    <div class="project-image">
+                        <img src="https://image.thum.io/get/width/800/crop/600/noanimate/https://mipre.personal.com.py/#/auth/login" alt="MiPre - Personal" loading="lazy" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                        <div class="project-placeholder" style="display: none;">
+                            <svg width="60" height="60" viewBox="0 0 60 60" fill="none">
+                                <rect x="10" y="10" width="40" height="40" rx="4" stroke="currentColor" stroke-width="2"/>
+                                <rect x="18" y="18" width="24" height="4" fill="currentColor"/>
+                                <rect x="18" y="26" width="20" height="4" fill="currentColor"/>
+                                <rect x="18" y="34" width="24" height="4" fill="currentColor"/>
+                            </svg>
+                        </div>
+                        <div class="project-overlay">
+                            <a href="https://mipre.personal.com.py/#/auth/login" class="project-link" target="_blank" rel="noopener noreferrer" aria-label="Ver demo en vivo">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                                    <polyline points="15 3 21 3 21 9"></polyline>
+                                    <line x1="10" y1="14" x2="21" y2="3"></line>
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="project-content">
+                        <h3 class="project-title">MiPre - Personal</h3>
+                        <p class="project-description">
+                            Plataforma web corporativa de gestión y autenticación para Personal. Sistema de login seguro 
+                            y panel de gestión utilizado por miles de usuarios diarios en operaciones críticas del negocio.
+                        </p>
+                        <div class="project-tech">
+                            <span>Angular</span>
+                            <span>TypeScript</span>
+                            <span>RxJS</span>
+                            <span>NgRx</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="project-card">
+                    <div class="project-image">
+                        <img src="https://image.thum.io/get/width/800/crop/600/noanimate/http://activate.personal.com.py/" alt="Activate - Personal" loading="lazy" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                        <div class="project-placeholder" style="display: none;">
+                            <svg width="60" height="60" viewBox="0 0 60 60" fill="none">
+                                <rect x="10" y="10" width="40" height="40" rx="4" stroke="currentColor" stroke-width="2"/>
+                                <rect x="18" y="18" width="24" height="4" fill="currentColor"/>
+                                <rect x="18" y="26" width="20" height="4" fill="currentColor"/>
+                                <rect x="18" y="34" width="24" height="4" fill="currentColor"/>
+                            </svg>
+                        </div>
+                        <div class="project-overlay">
+                            <a href="http://activate.personal.com.py/" class="project-link" target="_blank" rel="noopener noreferrer" aria-label="Ver demo en vivo">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                                    <polyline points="15 3 21 3 21 9"></polyline>
+                                    <line x1="10" y1="14" x2="21" y2="3"></line>
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="project-content">
+                        <h3 class="project-title">Activate - Personal</h3>
+                        <p class="project-description">
+                            Aplicación web para activación de líneas telefónicas de Personal. Interfaz intuitiva con 
+                            proceso paso a paso para activación de chips, validación de documentos y gestión de datos 
+                            de nuevos usuarios.
+                        </p>
+                        <div class="project-tech">
+                            <span>Angular</span>
+                            <span>TypeScript</span>
+                            <span>RxJS</span>
+                            <span>CSS3</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Experience Section -->
+    <section id="experience" class="experience">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-number">04.</span>
+                <h2 class="section-title">Experiencia</h2>
+                <div class="section-line"></div>
+            </div>
+            <div class="timeline">
+                <div class="timeline-item">
+                    <div class="timeline-marker"></div>
+                    <div class="timeline-content">
+                        <span class="timeline-date">Feb 2023 - Presente</span>
+                        <h3 class="timeline-title">Desarrollador Full Stack</h3>
+                        <h4 class="timeline-company">Konecta</h4>
+                        <p class="timeline-description">
+                            Desarrollo de aplicaciones web y móviles completas con Angular, React, Node.js y Flutter para Personal. 
+                            Implementación de arquitecturas SPA con lazy loading, routing avanzado, gestión de estado, 
+                            desarrollo de APIs REST con Node.js e integración con bases de datos Supabase y MySQL.
+                        </p>
+                        <div class="timeline-tech">
+                            <span>Angular</span>
+                            <span>React</span>
+                            <span>Flutter</span>
+                            <span>TypeScript</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-marker"></div>
+                    <div class="timeline-content">
+                        <span class="timeline-date">Jun 2024 - Presente</span>
+                        <h3 class="timeline-title">Desarrollador Full Stack Freelance</h3>
+                        <h4 class="timeline-company">Fábrica de Software</h4>
+                        <p class="timeline-description">
+                            Desarrollo de soluciones web y móviles completas a medida, desde frontend hasta backend. 
+                            Creación de APIs REST con Node.js, diseño y gestión de bases de datos con Supabase y MySQL, 
+                            seleccionando el stack tecnológico óptimo según cada proyecto.
+                        </p>
+                        <div class="timeline-tech">
+                            <span>React</span>
+                            <span>Next.js</span>
+                            <span>Flutter</span>
+                            <span>JavaScript</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-marker"></div>
+                    <div class="timeline-content">
+                        <span class="timeline-date">Ene 2022 - Oct 2022</span>
+                        <h3 class="timeline-title">Web Master</h3>
+                        <h4 class="timeline-company">Juegos Sudamericanos Asunción 2022</h4>
+                        <p class="timeline-description">
+                            Gestión y mantenimiento del sitio web oficial del evento multideportivo internacional, 
+                            con actualizaciones diarias y optimización de experiencia de usuario.
+                        </p>
+                        <div class="timeline-tech">
+                            <span>HTML5</span>
+                            <span>CSS3</span>
+                            <span>JavaScript</span>
+                            <span>CMS</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="contact">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-number">05.</span>
+                <h2 class="section-title">Contacto</h2>
+                <div class="section-line"></div>
+            </div>
+            <div class="contact-content">
+                <div class="contact-info">
+                    <h3 class="contact-title">¿Tienes un proyecto en mente?</h3>
+                    <p class="contact-description">
+                        Estoy siempre abierto a discutir nuevos proyectos, oportunidades creativas 
+                        o simplemente conectarnos. ¡Hablemos!
+                    </p>
+                    <div class="contact-details">
+                        <div class="contact-item">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                                <circle cx="12" cy="10" r="3"></circle>
+                            </svg>
+                            <span>Luque, Paraguay</span>
+                        </div>
+                        <div class="contact-item">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+                            </svg>
+                            <span>+595 982 906 021</span>
+                        </div>
+                        <div class="contact-item">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                                <polyline points="22,6 12,13 2,6"></polyline>
+                            </svg>
+                            <a href="mailto:Naserfer97@gmail.com">Naserfer97@gmail.com</a>
+                        </div>
+                    </div>
+                    <div class="social-links">
+                        <a href="https://www.linkedin.com/in/naser-fernandez-mancia-67b841289" target="_blank" rel="noopener noreferrer" class="social-link linkedin-link" aria-label="LinkedIn">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
+                            </svg>
+                            <span class="social-text">LinkedIn</span>
+                        </a>
+                    </div>
+                </div>
+                <form class="contact-form" id="contactForm">
+                    <div class="form-group">
+                        <label for="name">Nombre</label>
+                        <input type="text" id="name" name="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" name="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="subject">Asunto</label>
+                        <input type="text" id="subject" name="subject" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="message">Mensaje</label>
+                        <textarea id="message" name="message" rows="6" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Enviar Mensaje</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Scroll to Top Button -->
+    <button class="scroll-to-top" id="scrollToTop" aria-label="Scroll to top">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 15l-6-6-6 6"/>
+        </svg>
+    </button>
+
+    <script src="script.js"></script>
+</body>
+</html>
+
