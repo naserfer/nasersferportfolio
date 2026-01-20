@@ -319,23 +319,320 @@ body.scrolled::before {
 
 /* ===== LIGHT MODE ===== */
 body.light-mode {
-    --bg-primary: #ffffff;
-    --bg-secondary: #f5f5f5;
-    --text-primary: #0a0e27;
+    /* Fondos claros para que el texto oscuro sea legible, pero manteniendo estructura del diseño oscuro */
+    --bg-primary: #f7fafc;
+    --bg-secondary: #edf2f7;
+    /* Texto oscuro como solicitó el usuario */
+    --text-primary: #1a202c;
     --text-secondary: #4a5568;
-    --bg-card: rgba(0, 0, 0, 0.03);
+    --bg-card: rgba(255, 255, 255, 0.8);
     --border-color: rgba(0, 0, 0, 0.1);
+    --shadow-glow: 0 0 20px rgba(0, 212, 255, 0.2);
 }
 
+/* Navbar en modo claro - fondo claro para texto oscuro */
+body.light-mode .navbar {
+    background: rgba(247, 250, 252, 0.95);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+body.light-mode .navbar.scrolled {
+    background: rgba(247, 250, 252, 0.98);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+body.light-mode .nav-link {
+    color: var(--text-primary);
+}
+
+body.light-mode .nav-link:hover,
+body.light-mode .nav-link.active {
+    color: var(--primary-color);
+}
+
+body.light-mode .logo-text {
+    color: var(--text-primary);
+}
+
+/* Code block en modo claro - fondo claro */
 body.light-mode .code-block {
-    background: rgba(0, 0, 0, 0.05);
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid var(--border-color);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
 }
 
+body.light-mode .code-header {
+    background: rgba(0, 0, 0, 0.05);
+    border-bottom: 1px solid var(--border-color);
+}
+
+body.light-mode .code-title {
+    color: var(--text-primary);
+}
+
+/* Botones en modo claro - texto oscuro */
+body.light-mode .btn-primary {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: #ffffff;
+    box-shadow: var(--shadow-glow);
+}
+
+body.light-mode .btn-secondary {
+    background: transparent;
+    color: var(--text-primary);
+    border-color: var(--primary-color);
+}
+
+body.light-mode .btn-secondary:hover {
+    background: var(--primary-color);
+    color: #ffffff;
+}
+
+body.light-mode .btn-cv {
+    background: transparent;
+    color: var(--text-primary);
+    border-color: var(--accent-color);
+}
+
+body.light-mode .btn-cv:hover {
+    background: var(--accent-color);
+    color: #ffffff;
+}
+
+/* Social links en modo claro */
+body.light-mode .social-link {
+    background: var(--bg-card);
+    border: 2px solid var(--border-color);
+    color: var(--text-primary);
+}
+
+body.light-mode .social-link:hover {
+    background: var(--primary-color);
+    color: #ffffff;
+    border-color: var(--primary-color);
+}
+
+/* Scroll to top en modo claro */
+body.light-mode .scroll-to-top {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+body.light-mode .scroll-to-top:hover {
+    background: var(--primary-color);
+    color: #ffffff;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 30px rgba(0, 212, 255, 0.4);
+}
+
+/* Theme toggle en modo claro */
+body.light-mode .theme-toggle {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+}
+
+body.light-mode .theme-toggle:hover {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+}
+
+/* Cards y secciones en modo claro */
 body.light-mode .project-card,
 body.light-mode .skill-category,
-body.light-mode .timeline-content {
-    background: rgba(255, 255, 255, 0.8);
+body.light-mode .timeline-content,
+body.light-mode .about-text {
+    background: var(--bg-card);
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--border-color);
+}
+
+/* Form inputs en modo claro */
+body.light-mode .form-group input,
+body.light-mode .form-group textarea {
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+}
+
+body.light-mode .form-group input:focus,
+body.light-mode .form-group textarea:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.2);
+}
+
+body.light-mode .form-group label {
+    color: var(--text-primary);
+}
+
+/* Section titles en modo claro */
+body.light-mode .section-title {
+    color: var(--text-primary);
+}
+
+body.light-mode .section-number {
+    color: var(--primary-color);
+}
+
+body.light-mode .section-title::after {
+    background: linear-gradient(90deg, var(--primary-color), var(--secondary-color), transparent);
+}
+
+/* Scroll indicator en modo claro */
+body.light-mode .scroll-indicator {
+    color: var(--text-primary);
+}
+
+body.light-mode .scroll-indicator .mouse {
+    border-color: var(--text-primary);
+}
+
+body.light-mode .scroll-indicator .wheel {
+    background: var(--text-primary);
+}
+
+/* Hero name highlight en modo claro */
+body.light-mode .name-highlight {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Tech tags en modo claro */
+body.light-mode .tech-tag {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+}
+
+body.light-mode .tech-tag:hover {
+    background: var(--primary-color);
+    color: #ffffff;
+    border-color: var(--primary-color);
+}
+
+/* Timeline markers en modo claro */
+body.light-mode .timeline-marker {
+    background: var(--primary-color);
+    border: 3px solid #ffffff;
+    box-shadow: 0 0 0 4px rgba(0, 212, 255, 0.2);
+}
+
+/* Contact items en modo claro */
+body.light-mode .contact-item {
+    color: var(--text-primary);
+}
+
+body.light-mode .contact-item svg {
+    color: var(--primary-color);
+}
+
+body.light-mode .contact-item a {
+    color: var(--text-primary);
+}
+
+body.light-mode .contact-item a:hover {
+    color: var(--primary-color);
+}
+
+/* Hamburger menu en modo claro */
+body.light-mode .hamburger span {
+    background: var(--text-primary);
+}
+
+/* Mobile nav menu en modo claro */
+body.light-mode .nav-menu {
+    background: var(--bg-primary);
+    border-bottom: 1px solid var(--border-color);
+}
+
+body.light-mode .nav-menu .nav-link {
+    color: var(--text-primary);
+}
+
+body.light-mode .nav-menu .nav-link:hover,
+body.light-mode .nav-menu .nav-link.active {
+    color: var(--primary-color);
+}
+
+/* Skill bars en modo claro */
+body.light-mode .skill-bar {
+    background: rgba(0, 0, 0, 0.1);
+}
+
+body.light-mode .skill-progress {
+    background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+}
+
+/* Project overlay en modo claro */
+body.light-mode .project-overlay {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+body.light-mode .project-link {
+    background: var(--bg-card);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+}
+
+body.light-mode .project-link:hover {
+    background: var(--primary-color);
+    color: #ffffff;
+    border-color: var(--primary-color);
+}
+
+/* About image border en modo claro */
+body.light-mode .image-border {
+    border-color: var(--primary-color);
+}
+
+body.light-mode .image-glow {
+    box-shadow: 0 0 40px rgba(0, 212, 255, 0.3);
+}
+
+/* Gradient orbs - ajustar opacidad en modo claro */
+body.light-mode .gradient-orb {
+    opacity: 0.3;
+}
+
+/* Hero description en modo claro */
+body.light-mode .hero-description {
+    color: var(--text-secondary);
+}
+
+/* Typing text en modo claro */
+body.light-mode .typing-text {
+    color: var(--primary-color);
+}
+
+/* Code syntax colors - mantener legibles en modo claro */
+body.light-mode .code-keyword {
+    color: #7c3aed;
+}
+
+body.light-mode .code-variable {
+    color: #059669;
+}
+
+body.light-mode .code-string {
+    color: #dc2626;
+}
+
+body.light-mode .code-number {
+    color: #ea580c;
+}
+
+body.light-mode .code-property {
+    color: #0891b2;
+}
+
+body.light-mode .code-operator {
+    color: var(--text-primary);
 }
 
 /* ===== THE OPENING SHOW (Awwwards Style) ===== */
@@ -1205,6 +1502,27 @@ section {
     background: var(--primary-color);
     color: var(--bg-primary);
     transform: translateY(-2px);
+}
+
+.btn-cv {
+    background: transparent;
+    color: var(--accent-color);
+    border-color: var(--accent-color);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-cv:hover {
+    background: var(--accent-color);
+    color: var(--bg-primary);
+    transform: translateY(-2px);
+    box-shadow: 0 0 20px rgba(162, 155, 254, 0.4);
+}
+
+.btn-cv svg {
+    width: 20px;
+    height: 20px;
 }
 
 .social-links {

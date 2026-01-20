@@ -1,4 +1,5 @@
 // ===== INITIAL SETUP (Opening Show Removed) =====
+// ===== INITIAL SETUP (Portfolio Animations) =====
 window.addEventListener('DOMContentLoaded', () => {
     gsap.registerPlugin(ScrollTrigger);
 
@@ -12,13 +13,8 @@ window.addEventListener('DOMContentLoaded', () => {
     const linkedinLink = document.querySelector('.linkedin-link');
     
     // Asegurar que elementos siempre sean visibles
-    const themeToggle = document.getElementById('themeToggle');
     const hamburger = document.getElementById('hamburger');
     const scrollToTop = document.getElementById('scrollToTop');
-    
-    if (themeToggle) {
-        gsap.set(themeToggle, { opacity: 1, visibility: 'visible', filter: 'none' });
-    }
     if (hamburger) {
         gsap.set(hamburger, { opacity: 1, visibility: 'visible', filter: 'none' });
     }
@@ -806,26 +802,7 @@ setInterval(() => {
 }, 5000);
 
 // ===== THEME TOGGLE (Dark/Light Mode) =====
-const themeToggle = document.getElementById('themeToggle');
-const currentTheme = localStorage.getItem('theme') || 'dark';
-
-document.documentElement.setAttribute('data-theme', currentTheme);
-if (currentTheme === 'light') {
-    document.body.classList.add('light-mode');
-}
-
-themeToggle.addEventListener('click', () => {
-    document.body.classList.toggle('light-mode');
-    const theme = document.body.classList.contains('light-mode') ? 'light' : 'dark';
-    document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem('theme', theme);
-    
-    // Animate toggle
-    themeToggle.style.transform = 'rotate(360deg) scale(1.1)';
-    setTimeout(() => {
-        themeToggle.style.transform = 'rotate(0deg) scale(1)';
-    }, 300);
-});
+// Theme toggle removed per user request
 
 // ===== ADVANCED CURSOR EFFECT =====
 if (window.innerWidth > 768) {
@@ -1270,11 +1247,10 @@ window.addEventListener('DOMContentLoaded', () => {
     }
     
     // Asegurar que theme toggle, hamburger y scroll-to-top siempre sean visibles
-    const themeToggle = document.getElementById('themeToggle');
     const hamburger = document.getElementById('hamburger');
     const scrollToTop = document.getElementById('scrollToTop');
     
-    [themeToggle, hamburger].forEach(el => {
+    [hamburger].forEach(el => {
         if (el) {
             // Forzar visibilidad permanente
             gsap.set(el, { opacity: 1, visibility: 'visible', filter: 'none', clearProps: 'all' });
