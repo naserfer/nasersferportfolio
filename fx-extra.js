@@ -1,10 +1,11 @@
 // Efectos diferidos. Para apagar uno, poné su valor en false.
-const FX = { field: true, thread: true, titles: true, timeline: true, preview: false, ribbon: true, ring: true, magnet: true, copy: true, konami: true, favicon: true };
+const FX = { field: true, thread: true, titles: true, timeline: true, magnet: true, copy: true, konami: true, favicon: true };
 
 (() => {
   const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const fine = matchMedia('(hover: hover) and (pointer: fine)').matches;
   const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+  const root = document.documentElement;
 
   // Copiar el correo funciona siempre, con o sin animaciones.
   if (FX.copy) {
@@ -16,19 +17,6 @@ const FX = { field: true, thread: true, titles: true, timeline: true, preview: f
       catch { msg.textContent = 'No se pudo copiar. Escribí a naserfer97@gmail.com'; }
       clearTimeout(t); t = setTimeout(() => { msg.textContent = ''; }, 3500);
     });
-  }
-
-  // Cinta con el mismo stack que figura en la lista.
-  if (FX.ribbon) {
-    const words = [...document.querySelectorAll('.skills div:nth-child(-n+3) dd')].flatMap((d) => d.textContent.split(/,\s*/));
-    const box = document.createElement('div');
-    box.className = 'ribbon';
-    box.setAttribute('aria-hidden', 'true');
-    const row = document.createElement('div');
-    [...words, ...words].forEach((w) => { const s = document.createElement('span'); s.textContent = w; row.append(s); });
-    box.append(row);
-    document.querySelector('.skills').before(box);
-    new IntersectionObserver(([e]) => box.classList.toggle('off', !e.isIntersecting)).observe(box);
   }
 
   if (FX.konami) {
@@ -75,7 +63,7 @@ const FX = { field: true, thread: true, titles: true, timeline: true, preview: f
   // Scroll: hilo de la señal, títulos y línea de tiempo comparten un solo cálculo.
   const thread = FX.thread ? document.createElement('div') : null;
   if (thread) { thread.className = 'thread'; thread.setAttribute('aria-hidden', 'true'); document.body.append(thread); }
-  const titles = FX.titles ? [...document.querySelectorAll('.work h2,.ask h2,.exp h2')].map((el) => ({ el, top: 0 })) : [];
+  const titles = FX.titles ? [...document.querySelectorAll('.work h2,.ask h2,.exp h2,.stack-s h2')].map((el) => ({ el, top: 0 })) : [];
   const rowsBox = document.querySelector('.rows');
   let tl = null, tlTop = 0, tlH = 1, rows = [];
   if (FX.timeline) {
@@ -83,13 +71,13 @@ const FX = { field: true, thread: true, titles: true, timeline: true, preview: f
     tl.className = 'tl';
     tl.setAttribute('aria-hidden', 'true');
     rowsBox.prepend(tl);
-    document.documentElement.classList.add('js-tl');
+    root.classList.add('js-tl');
     rows = [...rowsBox.querySelectorAll('.row')].map((el) => ({ el, y: 0 }));
   }
   let vh = 1, max = 1, ticking = false;
   const measure = () => {
-    vh = innerHeight; max = Math.max(1, document.documentElement.scrollHeight - vh);
-    titles.forEach((t) => { const tr = t.el.style.transform; t.el.style.transform = ''; t.top = t.el.getBoundingClientRect().top + scrollY; t.el.style.transform = tr; });
+    vh = innerHeight; max = Math.max(1, root.scrollHeight - vh);
+    titles.forEach((t) => { const tr = t.el.style.translate; t.el.style.translate = 'none'; t.top = t.el.getBoundingClientRect().top + scrollY; t.el.style.translate = tr; });
     if (tl) {
       const r = rowsBox.getBoundingClientRect();
       tlTop = r.top + scrollY; tlH = r.height || 1;
@@ -118,61 +106,56 @@ const FX = { field: true, thread: true, titles: true, timeline: true, preview: f
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { measure(); update(); });
   measure(); update();
 
-  // Campo de partículas, en Canvas 2D, solo cuando el inicio está a la vista.
+  // Partículas que orbitan tu foto, como en el cierre de la función de 15 segundos.
   const startField = () => {
     if (!FX.field) return;
-    const hero = document.querySelector('.hero');
+    const hero = document.querySelector('.hero'), img = document.querySelector('.portrait img');
     const cv = document.createElement('canvas');
     cv.className = 'field';
     cv.setAttribute('aria-hidden', 'true');
     hero.prepend(cv);
     const ctx = cv.getContext('2d');
-    let W = 0, H = 0, dpr = 1, pts = [], visible = true, raf = 0, last = 0, slow = 0, frames = 0, links = true;
-    let mx = -9999, my = -9999;
-    const seed = (n) => { pts = Array.from({ length: n }, () => ({ x: Math.random() * W, y: Math.random() * H, vx: (Math.random() - 0.5) * 0.18, vy: (Math.random() - 0.5) * 0.18, ox: 0, oy: 0 })); };
+    let W = 0, H = 0, cx = 0, cy = 0, rad = 100, ps = [], visible = true, raf = 0, last = 0, slow = 0, frames = 0, t0 = 0;
+    let mx = -9999, my = -9999, limit = 0;
     const size = () => {
-      const r = cv.getBoundingClientRect();
-      dpr = Math.min(devicePixelRatio || 1, 1.5);
+      const r = cv.getBoundingClientRect(), i = img.getBoundingClientRect(), d = Math.min(devicePixelRatio || 1, 1.5);
       W = r.width; H = r.height;
-      cv.width = W * dpr; cv.height = H * dpr;
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      seed(Math.min(fine ? 110 : 45, Math.round((W * H) / 13000)));
+      cx = i.left - r.left + i.width / 2; cy = i.top - r.top + i.height / 2; rad = i.width / 2;
+      cv.width = W * d; cv.height = H * d;
+      ctx.setTransform(d, 0, 0, d, 0, 0);
+      const n = fine ? 340 : 160;
+      limit = n;
+      ps = Array.from({ length: n }, () => {
+        const spread = Math.random() ** 2.2;
+        return { a: Math.random() * 6.283, r: rad * (1.16 + spread * 0.95), v: (0.05 + Math.random() * 0.1) * (1.2 - spread * 0.7), s: 1.2 + Math.random() * 1.4, sx: Math.random() * W, sy: Math.random() * H, o: 0.28 + (1 - spread) * 0.62, ox: 0, oy: 0, d: Math.random() * 0.5 };
+      });
+      t0 = performance.now();
     };
+    const out = (t) => 1 - (1 - t) ** 3;
     const draw = (now) => {
       raf = 0;
-      if (!visible || document.hidden || document.documentElement.classList.contains('show-on')) return;
+      if (!visible || document.hidden || root.classList.contains('show-on')) return;
       raf = requestAnimationFrame(draw);
-      const dt = now - last; last = now;
+      const dt = Math.min(now - last, 50); last = now;
       if (dt < 200) { frames++; if (dt > 26) slow++; }
-      if (frames >= 90) { // baja la calidad si no llega a unos 38 FPS
-        if (slow > 45) { if (links) links = false; else if (pts.length > 25) pts.length = Math.round(pts.length * 0.7); }
-        frames = 0; slow = 0;
-      }
+      if (frames >= 90) { if (slow > 45 && limit > 90) limit = Math.round(limit * 0.7); frames = 0; slow = 0; }
+      const T = (now - t0) / 1000;
       ctx.clearRect(0, 0, W, H);
-      ctx.fillStyle = 'rgba(36,56,232,.42)';
-      const near = [];
-      for (const p of pts) {
-        p.x += p.vx; p.y += p.vy;
-        if (p.x < 0) p.x += W; else if (p.x > W) p.x -= W;
-        if (p.y < 0) p.y += H; else if (p.y > H) p.y -= H;
-        const dx = p.x - mx, dy = p.y - my, d2 = dx * dx + dy * dy;
+      ctx.fillStyle = '#2438e8';
+      for (let i = 0; i < limit; i++) {
+        const p = ps[i];
+        p.a += p.v * dt * 0.001;
+        const e = out(clamp((T - p.d) / 1.4, 0, 1));
+        const rx = cx + Math.cos(p.a) * p.r, ry = cy + Math.sin(p.a) * p.r * 0.96;
+        const x = p.sx + (rx - p.sx) * e, y = p.sy + (ry - p.sy) * e;
+        const dx = x - mx, dy = y - my, d2 = dx * dx + dy * dy;
         let tx = 0, ty = 0;
-        if (d2 < 32400) { const d = Math.sqrt(d2) || 1, f = (180 - d) / 180; tx = (dx / d) * f * 34; ty = (dy / d) * f * 34; }
-        p.ox += (tx - p.ox) * 0.08; p.oy += (ty - p.oy) * 0.08;
-        const x = p.x + p.ox, y = p.y + p.oy;
-        ctx.fillRect(x - 1, y - 1, 2, 2);
-        if (links && d2 < 57600) near.push(x, y);
+        if (d2 < 19600) { const d = Math.sqrt(d2) || 1, f = (140 - d) / 140; tx = (dx / d) * f * 42; ty = (dy / d) * f * 42; }
+        p.ox += (tx - p.ox) * 0.09; p.oy += (ty - p.oy) * 0.09;
+        ctx.globalAlpha = p.o;
+        ctx.fillRect(x + p.ox, y + p.oy, p.s, p.s);
       }
-      if (near.length) {
-        ctx.strokeStyle = 'rgba(36,56,232,.2)';
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        for (let i = 0; i < near.length; i += 2) for (let j = i + 2; j < near.length; j += 2) {
-          const a = near[i] - near[j], b = near[i + 1] - near[j + 1];
-          if (a * a + b * b < 8100) { ctx.moveTo(near[i], near[i + 1]); ctx.lineTo(near[j], near[j + 1]); }
-        }
-        ctx.stroke();
-      }
+      ctx.globalAlpha = 1;
     };
     const go = () => { if (!raf && visible && !document.hidden) { last = performance.now(); raf = requestAnimationFrame(draw); } };
     size();
@@ -181,6 +164,7 @@ const FX = { field: true, thread: true, titles: true, timeline: true, preview: f
     addEventListener('show-end', go);
     let rt;
     addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(size, 200); });
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => setTimeout(size, 60));
     if (fine) {
       hero.addEventListener('pointermove', (e) => { const r = cv.getBoundingClientRect(); mx = e.clientX - r.left; my = e.clientY - r.top; });
       hero.addEventListener('pointerleave', () => { mx = my = -9999; });
@@ -189,56 +173,19 @@ const FX = { field: true, thread: true, titles: true, timeline: true, preview: f
   };
   (window.requestIdleCallback || ((f) => setTimeout(f, 300)))(startField);
 
-  if (!fine) return;
+  if (!fine || !FX.magnet) return;
 
-  // Cursor, vista previa y botones comparten un solo bucle, activo solo al moverse.
-  let px = -100, py = -100, rx = -100, ry = -100, vx = -100, vy = -100, loop = 0;
-  const ring = FX.ring ? Object.assign(document.createElement('div'), { className: 'ring', innerHTML: '<b></b>' }) : null;
-  const pv = FX.preview ? Object.assign(document.createElement('div'), { className: 'pv', innerHTML: '<i></i>' }) : null;
-  [ring, pv].forEach((n) => { if (n) { n.setAttribute('aria-hidden', 'true'); document.body.append(n); } });
-  const tick = () => {
-    rx += (px - rx) * 0.24; ry += (py - ry) * 0.24;
-    vx += (px - vx) * 0.12; vy += (py - vy) * 0.12;
-    if (ring) ring.style.transform = `translate(${rx}px,${ry}px)`;
-    if (pv) pv.style.transform = `translate(${clamp(vx + 22, 8, innerWidth - 248)}px,${clamp(vy - 176, 8, innerHeight - 158)}px)`;
-    loop = Math.abs(px - rx) + Math.abs(py - ry) + Math.abs(px - vx) + Math.abs(py - vy) > 0.4 ? requestAnimationFrame(tick) : 0;
-  };
-  addEventListener('pointermove', (e) => {
-    px = e.clientX; py = e.clientY;
-    if (ring) {
-      ring.classList.add('on');
-      const hot = e.target.closest && e.target.closest('a,button,input');
-      ring.classList.toggle('hot', !!hot);
-    }
-    if (!loop) loop = requestAnimationFrame(tick);
-  }, { passive: true });
-  document.addEventListener('pointerleave', () => { if (ring) ring.classList.remove('on'); });
-
-  if (pv) {
-    const looks = [['12%', '30%', '20deg'], ['78%', '22%', '140deg'], ['40%', '82%', '250deg'], ['88%', '70%', '320deg']];
-    const art = pv.firstElementChild;
-    document.querySelectorAll('.plist li').forEach((li, i) => {
-      li.addEventListener('pointerenter', () => {
-        const [x, y, a] = looks[i % looks.length];
-        art.style.setProperty('--x', x); art.style.setProperty('--y', y); art.style.setProperty('--a', a);
-        pv.classList.add('on');
-      });
-      li.addEventListener('pointerleave', () => pv.classList.remove('on'));
+  // Botones magnéticos
+  document.querySelectorAll('.take,.go,.copy').forEach((b) => {
+    b.classList.add('magnet');
+    b.addEventListener('pointermove', (e) => {
+      const r = b.getBoundingClientRect();
+      const dx = e.clientX - (r.left + r.width / 2) - (parseFloat(b.dataset.x) || 0);
+      const dy = e.clientY - (r.top + r.height / 2) - (parseFloat(b.dataset.y) || 0);
+      b.dataset.x = dx * 0.18; b.dataset.y = dy * 0.3;
+      b.style.transition = 'transform .12s';
+      b.style.transform = `translate(${dx * 0.18}px,${dy * 0.3}px)`;
     });
-  }
-
-  if (FX.magnet) {
-    document.querySelectorAll('.take,.go,.copy').forEach((b) => {
-      b.classList.add('magnet');
-      b.addEventListener('pointermove', (e) => {
-        const r = b.getBoundingClientRect();
-        const dx = e.clientX - (r.left + r.width / 2) - (parseFloat(b.dataset.x) || 0);
-        const dy = e.clientY - (r.top + r.height / 2) - (parseFloat(b.dataset.y) || 0);
-        b.dataset.x = dx * 0.18; b.dataset.y = dy * 0.3;
-        b.style.transition = 'transform .12s';
-        b.style.transform = `translate(${dx * 0.18}px,${dy * 0.3}px)`;
-      });
-      b.addEventListener('pointerleave', () => { b.dataset.x = 0; b.dataset.y = 0; b.style.transition = 'transform .35s cubic-bezier(.2,1.4,.4,1)'; b.style.transform = ''; });
-    });
-  }
+    b.addEventListener('pointerleave', () => { b.dataset.x = 0; b.dataset.y = 0; b.style.transition = 'transform .35s cubic-bezier(.2,1.4,.4,1)'; b.style.transform = ''; });
+  });
 })();

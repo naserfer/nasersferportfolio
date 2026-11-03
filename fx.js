@@ -62,7 +62,7 @@
     const io = new IntersectionObserver((es) => es.forEach((e) => {
       if (e.isIntersecting) { e.target.classList.add('in'); e.target.classList.remove('pre'); io.unobserve(e.target); }
     }), { rootMargin: '0px 0px -8% 0px' });
-    document.querySelectorAll('.work h2,.exp h2,.ask h2,.mail').forEach((el) => {
+    document.querySelectorAll('.work h2,.exp h2,.ask h2,.stack-s h2,.mail').forEach((el) => {
       if (el.getBoundingClientRect().top > innerHeight) { el.classList.add('pre'); io.observe(el); }
     });
   }
