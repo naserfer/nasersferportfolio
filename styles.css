@@ -100,23 +100,24 @@ h1 span{display:inline-block}
 .pre{opacity:0;transform:translateY(.22em)}
 .in{opacity:1;transform:none;transition:opacity .8s cubic-bezier(.16,1,.3,1),transform .8s cubic-bezier(.16,1,.3,1)}
 .tw{width:100vw;height:100dvh;max-width:none;max-height:none;margin:0;border:0;padding:0;background:var(--cobalt);color:#fff;font-family:inherit;overflow:hidden}
-.tw[open]{display:block;animation:twin .3s ease-out}
-@keyframes twin{from{opacity:0;transform:scale(.96)}}
+.tw[open]{display:block;animation:twin .22s ease-out}
+.tw::backdrop{background:var(--cobalt)}
+@keyframes twin{from{opacity:0}}
 .tw-stage{position:absolute;inset:0;overflow:hidden;background:var(--cobalt)}
-#tw-canvas{position:absolute;inset:0;width:100%;height:100%;z-index:1}
-.tw-t{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:2;white-space:pre;text-align:center;font-weight:700;font-stretch:78%;letter-spacing:-.02em;line-height:1.05;will-change:transform,opacity}
-.tw-iris{position:absolute;left:50%;top:50%;width:40px;height:40px;margin:-20px 0 0 -20px;border-radius:50%;z-index:0;transform:scale(0);will-change:transform}
-.tw-bar{position:absolute;left:0;right:0;top:0;height:5px;background:rgba(127,141,255,.3);z-index:4}
-.tw-bar span{display:block;height:100%;width:0;background:#7f8dff}
-.tw-top{position:absolute;right:clamp(14px,3vw,32px);top:18px;z-index:5;display:flex;gap:8px}
-.tw-btn{font:inherit;font-weight:600;background:var(--ink);color:#fff;border:1px solid #fff;padding:9px 15px;cursor:pointer}
+#tw-canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+#tw-canvas[hidden]{display:none}
+.tw-bar{position:absolute;left:0;right:0;top:0;height:4px;background:rgba(127,141,255,.28);z-index:4}
+.tw-bar span{display:block;height:100%;background:#7f8dff;transform:scaleX(0);transform-origin:0 50%}
+.tw-top{position:absolute;right:clamp(14px,3vw,32px);top:16px;z-index:5;display:flex;gap:8px}
+.tw-btn{font:inherit;font-size:.95rem;font-weight:600;background:rgba(18,26,43,.72);color:#fff;border:1px solid rgba(255,255,255,.75);padding:8px 14px;cursor:pointer}
 .tw-btn:hover{background:#fff;color:var(--ink)}
 .tw-btn[hidden]{display:none}
-.tw :focus-visible{outline:2px solid #fff;outline-offset:3px;box-shadow:0 0 0 4px var(--ink)}
-.tw-end{position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(8px,1.6vh,14px);padding:64px 16px 136px;text-align:center;color:#fff}
-.tw-end img{width:clamp(104px,20vh,170px);height:clamp(104px,20vh,170px);border-radius:50%;object-fit:cover;margin-bottom:clamp(22px,5vh,48px)}
-.tw-end strong{font-weight:700;font-stretch:78%;letter-spacing:-.02em;line-height:1;font-size:clamp(2.6rem,min(11vw,13vh),7rem);white-space:nowrap}
-.tw-end span{font-size:clamp(1.05rem,2.2vw,1.5rem);font-weight:500}
+.tw :focus-visible{outline:2px solid #fff;outline-offset:3px}
+.tw-foot:focus{outline:none}
+.tw-foot:not([hidden]){animation:twfoot .45s cubic-bezier(.16,1,.3,1)}
+@keyframes twfoot{from{opacity:0;transform:translateY(14px)}}
+.show-on main,.show-on .nav,.show-on footer,.show-on .thread,.show-on .ring,.show-on .pv{visibility:hidden}
+.show-on .ribbon div,.show-on .cv::before,.show-on .cv::after,.show-on .cv svg{animation-play-state:paused}
 .tw-foot{position:absolute;left:0;right:0;bottom:clamp(20px,5vh,48px);z-index:5;display:flex;flex-wrap:wrap;gap:10px;justify-content:center;align-items:center;padding-inline:16px}
 .tw-foot[hidden]{display:none}
 .tw-foot a{font-size:1.05rem;font-weight:700;color:var(--cobalt);background:#fff;padding:13px 20px;text-decoration:none}

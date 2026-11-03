@@ -140,7 +140,7 @@ const FX = { field: true, thread: true, titles: true, timeline: true, preview: f
     };
     const draw = (now) => {
       raf = 0;
-      if (!visible || document.hidden) return;
+      if (!visible || document.hidden || document.documentElement.classList.contains('show-on')) return;
       raf = requestAnimationFrame(draw);
       const dt = now - last; last = now;
       if (dt < 200) { frames++; if (dt > 26) slow++; }
@@ -178,6 +178,7 @@ const FX = { field: true, thread: true, titles: true, timeline: true, preview: f
     size();
     new IntersectionObserver(([e]) => { visible = e.isIntersecting; go(); }).observe(cv);
     document.addEventListener('visibilitychange', go);
+    addEventListener('show-end', go);
     let rt;
     addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(size, 200); });
     if (fine) {
