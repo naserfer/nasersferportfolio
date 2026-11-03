@@ -32,6 +32,27 @@ function drawLines() {
   svg.replaceChildren(); paths = [];
   tools.forEach((t) => link(me, t, 0));
   tools.forEach((t) => outs.forEach((o) => link(t, o, 0.6)));
+  // Señales que recorren las conexiones.
+  if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    paths.forEach(({ p }, i) => {
+      p.id = 'route-' + i;
+      const dot = document.createElementNS(NS, 'circle');
+      dot.setAttribute('r', '3');
+      dot.setAttribute('class', 'pulse');
+      const m = document.createElementNS(NS, 'animateMotion');
+      m.setAttribute('dur', '3.4s');
+      m.setAttribute('begin', (1.6 + i * 0.47) + 's');
+      m.setAttribute('repeatCount', 'indefinite');
+      const mp = document.createElementNS(NS, 'mpath');
+      mp.setAttribute('href', '#route-' + i);
+      dot.setAttribute('opacity', '0');
+      const show = document.createElementNS(NS, 'set');
+      show.setAttribute('attributeName', 'opacity');
+      show.setAttribute('to', '.85');
+      show.setAttribute('begin', (1.6 + i * 0.47) + 's');
+      m.appendChild(mp); dot.append(m, show); svg.appendChild(dot);
+    });
+  }
 }
 // Al pasar por un resultado, se ilumina el camino que llega a él.
 outs.forEach((o) => {
@@ -42,6 +63,8 @@ outs.forEach((o) => {
   o.addEventListener('blur', () => set(false));
 });
 
+// Las señales se pausan cuando el diagrama no está a la vista.
+if ('IntersectionObserver' in window) new IntersectionObserver(([e]) => { if (e.isIntersecting) svg.unpauseAnimations(); else svg.pauseAnimations(); }).observe(flow);
 function layout() { fit(h1); fit(mail); drawLines(); }
 layout();
 if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {

@@ -7,18 +7,28 @@
 <meta name="description" content="Full Stack Developer en Asunción, Paraguay. Cofundador de Ardentium. Construyo productos de la idea a producción dirigiendo agentes de IA.">
 <meta property="og:title" content="Naser Fernández, Full Stack Developer">
 <meta property="og:description" content="Construyo productos de la idea a producción dirigiendo agentes de IA. Cofundador de Ardentium.">
-<meta property="og:image" content="images/motelapp-tablero-1200.webp">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://nasersferportfolio.naserfer97.workers.dev/">
+<meta property="og:image" content="https://nasersferportfolio.naserfer97.workers.dev/images/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="canonical" href="https://nasersferportfolio.naserfer97.workers.dev/">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<meta name="theme-color" content="#2438e8">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Person","name":"Naser Fernández Mancia","jobTitle":"Full Stack Developer","url":"https://nasersferportfolio.naserfer97.workers.dev/","address":{"@type":"PostalAddress","addressLocality":"Asunción","addressCountry":"PY"},"worksFor":{"@type":"Organization","name":"Ardentium","url":"https://ardentium.tech"},"sameAs":["https://www.linkedin.com/in/naser-fernandez-mancia-67b841289/"]}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wdth,wght@75..100,400..700&display=swap" rel="stylesheet">
+<script>try{if(!localStorage.getItem("nf-seen")&&!matchMedia("(prefers-reduced-motion: reduce)").matches){document.documentElement.classList.add("intro");localStorage.setItem("nf-seen","1")}}catch(e){}</script>
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<a class="skip" href="#trabajo">Saltar al trabajo</a>
+<a class="skip" href="#trabajo">Saltar al contenido</a>
 <header class="nav wrap">
   <span>Full Stack Developer en Asunción, Paraguay</span>
   <nav aria-label="Principal">
-    <a href="#trabajo">Trabajo</a>
+    <a href="#trabajo">Proyectos</a>
     <a href="#experiencia">Experiencia</a>
     <a href="#contacto">Contacto</a>
     <a href="files/CV_Naser_Fernandez.pdf" download="CV_Naser_Fernandez.pdf">Descargar CV</a>
@@ -29,6 +39,7 @@
 <section class="hero wrap">
   <h1 id="name"><span>Naser Fernández</span></h1>
   <p class="claim">Construyo software de la idea a producción. Dirijo agentes de IA, reviso cada entrega y respondo por el resultado.</p>
+  <p class="cta"><button class="take" id="twenty" type="button" hidden>¿Tenés 15 segundos?</button><a class="go cv" href="files/CV_Naser_Fernandez.pdf" download="CV_Naser_Fernandez.pdf"><span>Descargar CV</span><svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true"><path d="M8 1.5v9M3.8 6.6 8 10.8l4.2-4.2M2.5 14.5h11" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></a></p>
 
   <div class="flow" id="flow">
     <svg id="lines" aria-hidden="true"></svg>
@@ -43,78 +54,39 @@
       <div class="node" data-node="tool">Servidores MCP</div>
     </div>
     <div class="col">
-      <h2>Ya en producción</h2>
-      <a class="node out" data-node="out" href="#karubox">KarúBox</a>
-      <a class="node out" data-node="out" href="#motelapp">MotelApp</a>
-      <a class="node out" data-node="out" href="#otros">Sabor del Chipá</a>
+      <h2>Entrego</h2>
+      <div class="node out" data-node="out">Web y SaaS</div>
+      <div class="node out" data-node="out">Apps móviles</div>
+      <div class="node out" data-node="out">Escritorio offline</div>
     </div>
   </div>
 </section>
 
-<section class="work" id="trabajo" aria-label="Trabajo">
-  <article class="karu wrap" id="karubox">
-    <div class="copy">
-      <h2>KarúBox</h2>
-      <p class="lede">El punto de venta en la nube para lomiterías y restaurantes de Paraguay.</p>
-      <p>Producto propio de Ardentium. Reúne ventas, inventario automático, puntos de fidelidad, impresión remota en cocina y reportes en tiempo real.</p>
-      <p class="client"><b>Oriental 8</b>, restaurante chino con muchos años en Asunción, decidió dar un paso más y gestiona su local con KarúBox. Atlas Burguer también lo usa.</p>
-      <p class="stack">TypeScript, React, Node.js y PostgreSQL</p>
-      <a class="go" href="https://www.karubox.com.py/" target="_blank" rel="noopener">Visitar karubox.com.py</a>
-    </div>
-    <figure class="ticket">
-      <p class="t-head">KarúBox<br><small>En números</small></p>
-      <dl>
-        <div><dt>Horas ahorradas por día</dt><dd>4 h</dd></div>
-        <div><dt>Implementación</dt><dd>24 h</dd></div>
-        <div><dt>Prueba gratis</dt><dd>30 días</dd></div>
-      </dl>
-      <blockquote>“KarúBox profesionalizó nuestro local de comidas rápidas y nos dio el orden para crecer.”</blockquote>
-      <figcaption>Michel Brondell, Atlas Burguer</figcaption>
-    </figure>
-  </article>
-
-  <article class="motel" id="motelapp">
-    <div class="wrap motel-head">
-      <h2>MotelApp</h2>
-      <p class="lede">Un motel entero en tiempo real, con o sin internet.</p>
-    </div>
-    <div class="wrap shots">
-      <img class="big" src="images/motelapp-tablero-1200.webp" alt="Tablero de MotelApp con las 23 habitaciones y su estado en vivo" width="1200" height="750" loading="lazy">
-      <img src="images/motelapp-cuenta-1200.webp" alt="Pantalla de cuenta de una habitación en MotelApp" width="1200" height="750" loading="lazy">
-      <img src="images/motelapp-analisis-1200.webp" alt="Pantalla de análisis del negocio en MotelApp" width="1200" height="750" loading="lazy">
-    </div>
-    <div class="wrap motel-foot">
-      <p>App de escritorio para recepción y administración: 23 habitaciones en un tablero con 5 estados en vivo, cuentas con consumos, cobro, tickets térmicos y analítica.</p>
-      <p>Opera sin conexión, sincroniza con la nube al reconectarse y hace un respaldo cifrado por día.</p>
-      <p class="stack">Tauri 2, Rust, React, TypeScript, SQLite, Supabase y ESC/POS</p>
-    </div>
-  </article>
-
-  <div class="wrap others" id="otros">
-    <h2>También</h2>
-    <ul>
-      <li><a href="https://sabordelchipa.vercel.app/" target="_blank" rel="noopener">Sabor del Chipá</a><span>Tienda online que arma el pedido y lo envía por WhatsApp, con panel de precios y stock.</span></li>
-      <li><a href="https://mipre.personal.com.py/#/auth/login" target="_blank" rel="noopener">MiPre</a><span>Plataforma web de gestión y autenticación de Personal, en Angular.</span></li>
-      <li><a href="http://activate.personal.com.py/" target="_blank" rel="noopener">Activate</a><span>Activación de líneas de Personal paso a paso, en Angular.</span></li>
-    </ul>
-  </div>
+<section class="work wrap" id="trabajo" aria-labelledby="workt">
+  <h2 id="workt">Software en producción</h2>
+  <p class="work-intro">Para telecomunicaciones, gastronomía, hotelería y comercio: sistemas críticos, productos propios y desarrollos a medida.</p>
+  <ul class="plist">
+    <li><span>Telecomunicaciones</span><span><a href="https://mi.personal.com.py/" target="_blank" rel="noopener">Mi Personal</a> y <a href="http://activate.personal.com.py/" target="_blank" rel="noopener">Activate</a></span><span>Angular y Flutter, para miles de usuarios por día</span></li>
+    <li><span>Gastronomía</span><span><a href="https://www.karubox.com.py/" target="_blank" rel="noopener">KarúBox</a></span><span>SaaS en TypeScript, React y Node.js</span></li>
+    <li><span>Hotelería</span><span>MotelApp</span><span>Escritorio offline-first con Tauri, Rust y SQLite</span></li>
+    <li><span>Comercio</span><span><a href="https://sabordelchipa.vercel.app/" target="_blank" rel="noopener">Sabor del Chipá</a></span><span>Tienda online con pedidos por WhatsApp</span></li>
+  </ul>
+  <p class="work-foot">Cofundador de <a href="https://ardentium.tech" target="_blank" rel="noopener">Ardentium</a>, una fábrica de software en Asunción.</p>
 </section>
 
-<section class="ard" aria-labelledby="ardt">
-  <div class="wrap">
-    <h2 id="ardt">Ardentium</h2>
-    <p>Cofundé Ardentium en 2026, una fábrica de software en Asunción. Hacemos software a medida, apps de escritorio y móviles, y automatización con IA. Lidero cada desarrollo según su objetivo, desde el alcance hasta el soporte.</p>
-    <a class="go" href="https://ardentium.tech" target="_blank" rel="noopener">Visitar ardentium.tech</a>
+<section class="ask wrap" id="preguntar" aria-labelledby="askt" hidden>
+  <h2 id="askt">Preguntale a mi portfolio</h2>
+  <p>Una IA responde solo con mi experiencia y mis proyectos. Puede equivocarse, así que confirmá lo importante conmigo.</p>
+  <div class="ask-chips">
+    <button type="button">¿Qué experiencia tiene con Angular?</button>
+    <button type="button">¿Cómo trabaja con IA?</button>
+    <button type="button">¿Qué hizo en MotelApp?</button>
   </div>
-</section>
-
-<section class="method wrap" aria-labelledby="mt">
-  <h2 id="mt">Cómo trabajo con IA</h2>
-  <ol>
-    <li><b>Especifico.</b> Parto de un documento de diseño con objetivos claros y lo divido en hitos.</li>
-    <li><b>Orquesto.</b> Coordino Claude y Cursor, conectados a servidores MCP, para implementar y depurar sobre código real.</li>
-    <li><b>Verifico.</b> Reviso lo generado y lo valido con pruebas unitarias y de navegador antes de entregar.</li>
-  </ol>
+  <form id="ask-form">
+    <label for="ask-q">Tu pregunta</label>
+    <div class="ask-row"><input id="ask-q" maxlength="300" autocomplete="off" required><button class="take" type="submit">Preguntar</button></div>
+  </form>
+  <p class="ask-out" id="ask-out" aria-live="polite"></p>
 </section>
 
 <section class="exp wrap" id="experiencia" aria-labelledby="et">
@@ -138,10 +110,23 @@
 </section>
 </main>
 
+<dialog class="tw" id="tw" aria-label="Naser en 15 segundos">
+  <div class="tw-stage" id="tw-stage" aria-hidden="true"><canvas id="tw-canvas"></canvas></div>
+  <div class="tw-bar" aria-hidden="true"><span id="tw-fill"></span></div>
+  <div class="tw-top"><button class="tw-btn" id="tw-skip" type="button">Saltar</button><button class="tw-btn" id="tw-close" type="button">Cerrar</button></div>
+  <p class="sr" id="tw-sr">Full Stack con más de 4 años en producción. Angular, React, Flutter, Node.js y Rust. Web, móvil y escritorio. Miles de personas usan mis apps cada día. Dirijo agentes de IA. Cofundé una fábrica de software y respondo por cada entrega.</p>
+  <div class="tw-foot" id="tw-foot" hidden>
+    <a href="files/CV_Naser_Fernandez.pdf" download="CV_Naser_Fernandez.pdf">Descargar CV</a>
+    <a href="mailto:naserfer97@gmail.com">Escribirme</a>
+    <button class="tw-btn" id="tw-again" type="button">Ver otra vez</button>
+  </div>
+</dialog>
+
 <footer class="contact" id="contacto">
   <div class="wrap">
     <h2>Hablemos</h2>
     <a class="mail" id="mail" href="mailto:naserfer97@gmail.com"><span>naserfer97@gmail.com</span></a>
+    <p class="copy-row"><button class="copy" id="copy" type="button" hidden>Copiar correo</button> <span id="copy-msg" role="status"></span></p>
     <ul>
       <li><a href="https://wa.me/595982906021" target="_blank" rel="noopener">WhatsApp +595 982 906 021</a></li>
       <li><a href="https://www.linkedin.com/in/naser-fernandez-mancia-67b841289/" target="_blank" rel="noopener">LinkedIn</a></li>
@@ -152,5 +137,8 @@
   </div>
 </footer>
 <script src="script.js"></script>
+<script src="ask.js"></script>
+<script src="fx.js"></script>
+<script src="fx-extra.js" defer></script>
 </body>
 </html>

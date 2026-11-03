@@ -1,0 +1,7 @@
+.git
+.gitignore
+.assetsignore
+worker.js
+wrangler.toml
+package.json
+README*
