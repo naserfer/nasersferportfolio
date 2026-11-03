@@ -171,6 +171,126 @@
   const photo = new Image();
   photo.src = 'images/foto-perfil.webp';
 
+  // Red de agentes: geometría propia para que las letras sean nítidas.
+  function inPoly(x, y, poly) {
+    let c = false;
+    for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+      const [xi, yi] = poly[i], [xj, yj] = poly[j];
+      if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) c = !c;
+    }
+    return c;
+  }
+  function segDist(px0, py0, ax, ay, bx, by) {
+    const dx = bx - ax, dy = by - ay, t = clamp(((px0 - ax) * dx + (py0 - ay) * dy) / (dx * dx + dy * dy || 1));
+    return Math.hypot(px0 - ax - dx * t, py0 - ay - dy * t);
+  }
+  function buildNet(h, cx, cy) {
+    const iw = 0.25 * h, gap = 0.14 * h, aw = 0.86 * h, total = iw + gap + aw;
+    const x0 = cx - total / 2, y0 = cy - h / 2, ax = x0 + iw + gap;
+    const a = (u, v) => [ax + u * h, y0 + v * h];
+    const mid = aw / h / 2, top = 0.115, foot = 0.27, apex = 0.2, barT = 0.56, barB = 0.72;
+    // Borde interno de cada pierna: de la base hasta el vértice interno.
+    const innerL = (v) => foot + ((mid - foot) * (1 - v)) / (1 - apex);
+    const innerR = (v) => aw / h - innerL(v);
+    const I = [[x0, y0], [x0 + iw, y0], [x0 + iw, y0 + h], [x0, y0 + h]];
+    const Aout = [a(0, 1), a(mid - top, 0), a(mid + top, 0), a(aw / h, 1), a(aw / h - foot, 1), a(innerR(barB), barB), a(innerL(barB), barB), a(foot, 1)];
+    const Ahole = [a(mid, apex), a(innerR(barT), barT), a(innerL(barT), barT)];
+    const loops = [I, Aout, Ahole];
+    const s = h / (W < 600 ? 10 : 12);
+    const X = [], Y = [], edges = [], rim = [];
+    const add = (x, y) => { X.push(x); Y.push(y); return X.length - 1; };
+    // Contorno: nodos parejos y siempre uno en cada vértice.
+    loops.forEach((loop) => {
+      const first = X.length;
+      loop.forEach(([xa, ya], i) => {
+        const [xb, yb] = loop[(i + 1) % loop.length], len = Math.hypot(xb - xa, yb - ya), n = Math.max(1, Math.round(len / s));
+        for (let k = 0; k < n; k++) add(xa + ((xb - xa) * k) / n, ya + ((yb - ya) * k) / n);
+      });
+      const last = X.length - 1;
+      for (let i = first; i <= last; i++) { const j = i === last ? first : i + 1; edges.push([i, j]); rim.push([i, j]); }
+    });
+    const rimCount = X.length;
+    // Malla interior en triángulos, alejada del borde.
+    const inside = (x, y) => inPoly(x, y, I) || (inPoly(x, y, Aout) && !inPoly(x, y, Ahole));
+    const clear = (x, y) => loops.every((loop) => loop.every(([xa, ya], i) => { const [xb, yb] = loop[(i + 1) % loop.length]; return segDist(x, y, xa, ya, xb, yb) > s * 0.42; }));
+    const rowH = s * 0.866;
+    for (let r = 0, y = y0 + s * 0.5; y < y0 + h; y += rowH, r++) {
+      for (let x = x0 + (r % 2 ? s / 2 : 0); x < x0 + total; x += s) if (inside(x, y) && clear(x, y)) add(x, y);
+    }
+    // Conexiones de la malla, solo si la línea queda dentro de la letra.
+    const count = X.length, maxD = s * 1.22;
+    for (let i = 0; i < count; i++) for (let j = Math.max(i + 1, rimCount); j < count; j++) {
+      const d = Math.hypot(X[i] - X[j], Y[i] - Y[j]);
+      if (d < maxD && inside((X[i] + X[j]) / 2 , (Y[i] + Y[j]) / 2)) edges.push([i, j]);
+    }
+    // Tres puentes unen la I con la A: una sola red.
+    [0.32, 0.58, 0.84].forEach((v) => {
+      const yb = y0 + v * h, near = (test) => { let best = 0, bd = 1e9; for (let i = 0; i < rimCount; i++) if (test(X[i])) { const d = Math.abs(Y[i] - yb) + Math.abs(X[i] - (x0 + iw + gap * 0.5)) * 0.5; if (d < bd) { bd = d; best = i; } } return best; };
+      edges.push([near((x) => x <= x0 + iw + 1), near((x) => x >= ax - 1)]);
+    });
+    // Distancia de cada nodo al origen, siguiendo las conexiones.
+    const adj = Array.from({ length: count }, () => []);
+    edges.forEach(([a1, b1]) => { adj[a1].push(b1); adj[b1].push(a1); });
+    const hop = new Float32Array(count).fill(-1), queue = [0];
+    hop[0] = 0;
+    for (let q = 0; q < queue.length; q++) adj[queue[q]].forEach((n) => { if (hop[n] < 0) { hop[n] = hop[queue[q]] + 1; queue.push(n); } });
+    let far = 1;
+    for (let i = 0; i < count; i++) { if (hop[i] < 0) hop[i] = 0; if (hop[i] > far) far = hop[i]; }
+    for (let i = 0; i < count; i++) hop[i] /= far;
+    const sx = new Float32Array(count), sy = new Float32Array(count), ph = new Float32Array(count), st = new Float32Array(count);
+    for (let i = 0; i < count; i++) { sx[i] = Math.random() * W; sy[i] = Math.random() * H; ph[i] = Math.random() * 6.283; st[i] = Math.random(); }
+    return { count, X, Y, edges, rim, loops, hop, sx, sy, ph, st, nx: new Float32Array(count), ny: new Float32Array(count), arrive: new Float32Array(count), lit: new Float32Array(count) };
+  }
+  const PULSES = [[10.85, 11.22], [11.36, 11.72], [11.62, 11.98]];
+  function drawNet() {
+    const n = L.net, lite = active < 650;
+    for (let i = 0; i < n.count; i++) {
+      const a = T <= 10.35 ? 0 : inOut(clamp((T - 10.35 - n.st[i] * 0.18) / 0.32));
+      n.arrive[i] = a;
+      const dx = n.sx[i] + Math.sin(T * 1.1 + n.ph[i]) * 34, dy = n.sy[i] + Math.cos(T * 0.9 + n.ph[i]) * 26;
+      n.nx[i] = dx + (n.X[i] - dx) * a; n.ny[i] = dy + (n.Y[i] - dy) * a;
+      let l = 0;
+      for (const [s0, s1] of PULSES) {
+        if (T < s0 || T > s1 + 0.12) continue;
+        const front = ((T - s0) / (s1 - s0)) * 1.2 - 0.1, g = (n.hop[i] - front) / 0.075;
+        l = Math.max(l, Math.exp(-g * g));
+      }
+      n.lit[i] = l;
+    }
+    const out = T > 12 ? 1 - map(T, 12, 12.2) : 1;
+    // Líneas: un path por brillo.
+    const faint = [new Path2D(), new Path2D(), new Path2D()], signal = new Path2D();
+    n.edges.forEach(([a1, b1]) => {
+      const o = Math.min(n.arrive[a1], n.arrive[b1]);
+      if (o < 0.55) return;
+      if (lite && a1 >= n.rim.length && b1 >= n.rim.length && !(n.lit[a1] || n.lit[b1])) return;
+      const path = n.lit[a1] > 0.4 || n.lit[b1] > 0.4 ? signal : faint[o < 0.72 ? 0 : o < 0.9 ? 1 : 2];
+      path.moveTo(n.nx[a1], n.ny[a1]); path.lineTo(n.nx[b1], n.ny[b1]);
+    });
+    ctx.lineWidth = 1;
+    [0.1, 0.2, 0.34].forEach((al, i) => { ctx.strokeStyle = rgba([127, 141, 255], al * out); ctx.stroke(faint[i]); });
+    ctx.strokeStyle = rgba(SOFT, 0.95 * out); ctx.lineWidth = 1.5; ctx.stroke(signal);
+    // Resolución: el contorno se enciende de golpe y queda nítido.
+    const solved = map(T, 11.2, 11.3);
+    if (solved > 0) {
+      const shape = new Path2D();
+      n.loops.forEach((loop) => { loop.forEach(([x, y], i) => (i ? shape.lineTo(x, y) : shape.moveTo(x, y))); shape.closePath(); });
+      const flash = T < 11.4 ? Math.sin(map(T, 11.2, 11.4) * 3.1416) * 0.24 : 0;
+      if (flash > 0) { ctx.fillStyle = rgba(SOFT, flash); ctx.fill(shape, 'evenodd'); }
+      ctx.strokeStyle = rgba(WHT, solved * 0.92 * out); ctx.lineWidth = 1.6; ctx.stroke(shape);
+    }
+    if (T >= 12) return; // desde acá siguen las partículas
+    // Nodos
+    const fade = map(T, 10, 10.2), breath = 1 + Math.sin(T * 3.2) * 0.06;
+    const base = new Path2D(), hot = new Path2D();
+    for (let i = 0; i < n.count; i++) {
+      const lit = n.lit[i], r = (i < n.rim.length ? 1.9 : 1.5) * (1 + lit * 0.9) * breath, p = lit > 0.25 ? hot : base;
+      p.moveTo(n.nx[i] + r, n.ny[i]); p.arc(n.nx[i], n.ny[i], r, 0, 6.2832);
+    }
+    ctx.fillStyle = rgba(WHT, 0.74 * fade); ctx.fill(base);
+    ctx.fillStyle = rgba(WHT, fade); ctx.fill(hot);
+  }
+
   function prepare() {
     const narrow = W < 600;
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
@@ -180,8 +300,8 @@
     const rh = reel.px * 1.14;
     const miles = fit(narrow ? ['Miles de', 'personas'] : ['Miles de personas'], W * 0.88, H * 0.38); miles.y = H * 0.45;
     const miles2 = fit(['usan mis apps cada día'], W * 0.8, H * 0.07); miles2.y = miles.y + miles.h / 2 + miles2.px * 0.75;
-    const ia = fit(['IA'], W * 0.72, H * 0.5, 700); ia.y = H * 0.41;
-    const ia2 = fit(['Dirijo agentes de IA'], W * 0.82, H * 0.08); ia2.y = Math.min(ia.y + ia.px * 0.62 + ia2.px * 0.7, H * 0.86);
+    const netH = Math.min(H * 0.44, W * 0.66), netY = H * 0.41;
+    const ia2 = fit(['Dirijo agentes de IA'], W * 0.82, H * 0.08); ia2.y = Math.min(netY + netH / 2 + ia2.px * 1.05, H * 0.86);
     const l1 = fit(narrow ? ['Cofundé una fábrica', 'de software'] : ['Cofundé una fábrica de software'], W * 0.86, H * 0.17);
     const l2 = fit(narrow ? ['y respondo por', 'cada entrega'] : ['y respondo por cada entrega'], W * 0.86, H * 0.17);
     const gap = Math.max(l1.px, l2.px) * 0.55, total = l1.h + l2.h + gap;
@@ -213,10 +333,10 @@
       [6, 7, 8].forEach((i) => c.fillText(REEL[i], W / 2, H / 2 + (i - 7) * rh));
     });
     L = {
-      fs, fs2, reel, rh, miles, miles2, ia, ia2, l1, l2, name, role, dia, ring, portrait,
+      fs, fs2, reel, rh, miles, miles2, ia2, l1, l2, name, role, dia, ring, portrait,
       end: { cx: W / 2, cy },
       mFs: maskOf((c) => put(c, fs)), mWme: wme, mMiles: maskOf((c) => put(c, miles)),
-      mIa: maskOf((c) => put(c, ia)), mL1: maskOf((c) => put(c, l1)), stars: scatter(), crowd: scatter(0.02),
+      net: buildNet(netH, W / 2, netY), mL1: maskOf((c) => put(c, l1)), stars: scatter(), crowd: scatter(0.02),
     };
     active = W < 600 ? 900 : MAX;
   }
@@ -280,7 +400,8 @@
     if (T < 6.95) return 0;
     if (T < 8.4) return 1 - map(T, 8.1, 8.4);
     if (T < 10) return 0;
-    if (T < 12.4) return map(T, 10, 10.15);
+    if (T < 12) return 0;
+    if (T < 12.4) return 1;
     if (T < 14.45) return 1 - 0.72 * map(T, 12.4, 12.8);
     return lerp(0.28, 1, map(T, 14.45, 14.75));
   }
@@ -306,8 +427,8 @@
       if (z > 0.72) { ctx.fillStyle = rgba(INK, map(z, 0.72, 1)); ctx.fillRect(0, 0, W, H); }
     } else if (T < 14.9) {
       paint(INK);
-      text(L.ia, WHT, Math.min(0.16 * map(T, 10.55, 11), 1 - map(T, 11.95, 12.05)));
-      text(L.ia2, WHT, Math.min(out4(map(T, 10.55, 10.85)), 1 - map(T, 11.9, 12.05)), { dy: 22 * (1 - out4(map(T, 10.55, 10.9))) });
+      if (T < 12.25) drawNet();
+      text(L.ia2, WHT, Math.min(out4(map(T, 11.05, 11.32)), 1 - map(T, 11.98, 12.1)), { dy: 18 * (1 - out4(map(T, 11.05, 11.38))) });
       const fade = 1 - map(T, 14.45, 14.62);
       text(L.l1, WHT, Math.min(map(T, 12.4, 12.68), fade), { scale: 1 + 0.02 * map(T, 12.7, 14.45) });
       text(L.l2, SOFT, Math.min(out4(map(T, 12.95, 13.25)), fade), { dy: 24 * (1 - out4(map(T, 12.95, 13.3))), scale: 1 + 0.02 * map(T, 13.2, 14.45) });
@@ -335,9 +456,13 @@
     [0, () => { teleport(L.stars); retarget(L.mFs.pts, 0.72, 0.22, 0.28); }],
     [6.95, () => { teleport(L.mWme.pts); retarget(L.crowd, 0.5, 0.05, 0.18); }],
     [7.42, () => retarget(L.mMiles.pts, 0.68, 0.16, 0.22)],
-    [10, () => { teleport(L.stars); retarget(L.mIa.pts, 0.82, 0.2, 0.34); }],
-    [12, () => retarget(L.mL1.pts, 0.5, 0.1, 0.4)],
-    [12.75, () => retarget(L.stars, 1.6, 0.4, 0.12)],
+    [12, () => {
+      // Cada partícula toma el lugar exacto de un nodo y sale en el orden de la red.
+      const n = L.net;
+      for (let i = 0; i < active; i++) { const k = i % n.count; px[i] = n.X[k]; py[i] = n.Y[k]; delay[i] = n.hop[k]; }
+      retarget(L.mL1.pts, 0.42, 0.3, 0.12);
+    }],
+    [12.75, () => { for (let i = 0; i < MAX; i++) delay[i] = Math.random(); retarget(L.stars, 1.6, 0.4, 0.12); }],
     [14.45, () => retarget(L.ring, 0.72, 0.16, 0.5)],
   ];
   function tick(now) {
