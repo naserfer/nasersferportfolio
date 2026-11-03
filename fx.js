@@ -348,7 +348,7 @@
       T += dt / 1000;
       // Si el equipo sufre, se reducen partículas: el texto y los tiempos no cambian.
       slowSum += dt; frames++;
-      if (frames === 30) { if (slowSum / 30 > 21 && active > 350) active = Math.round(active * 0.75); frames = 0; slowSum = 0; }
+      if (frames === 30) { if (slowSum / 30 > 21 && active > 650) active = Math.round(active * 0.8); frames = 0; slowSum = 0; }
     }
     while (nextEvent < EVENTS.length && T >= EVENTS[nextEvent][0]) EVENTS[nextEvent++][1]();
     render();
