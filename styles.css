@@ -245,3 +245,13 @@ html.intro .play{--cvs:2.3s}
   .play-face,.play-disc svg{transition:none}
   .take.play:hover .play-face::before{transition:none}
 }
+
+/* Corriente de puntos y palitos */
+.flow{position:fixed;left:0;top:0;z-index:15;pointer-events:none}
+.flow[hidden]{display:none}
+.show-on .flow{visibility:hidden}
+body.flow-grab{cursor:grab}
+body.flow-drag,body.flow-drag *{cursor:grabbing!important;user-select:none}
+.flow-toggle{display:block;margin-top:22px;padding:6px 0;font:inherit;font-size:.875rem;color:rgba(255,255,255,.82);background:none;border:0;text-decoration:underline;text-underline-offset:.2em;cursor:pointer}
+.flow-toggle:hover{color:#fff}
+.flow-toggle[hidden]{display:none}

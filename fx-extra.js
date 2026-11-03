@@ -1,5 +1,5 @@
 // Efectos diferidos. Para apagar uno, poné su valor en false.
-const FX = { field: true, thread: true, titles: true, timeline: true, magnet: true, copy: true, konami: true, favicon: true, verbs: true };
+const FX = { flow: true, field: false, thread: true, titles: true, timeline: true, magnet: true, copy: true, konami: true, favicon: true, verbs: true };
 
 (() => {
   const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
