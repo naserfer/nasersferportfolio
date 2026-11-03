@@ -1,5 +1,5 @@
 // Efectos diferidos. Para apagar uno, poné su valor en false.
-const FX = { field: true, thread: true, titles: true, timeline: true, magnet: true, copy: true, konami: true, favicon: true };
+const FX = { field: true, thread: true, titles: true, timeline: true, magnet: true, copy: true, konami: true, favicon: true, verbs: true };
 
 (() => {
   const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -74,9 +74,37 @@ const FX = { field: true, thread: true, titles: true, timeline: true, magnet: tr
     root.classList.add('js-tl');
     rows = [...rowsBox.querySelectorAll('.row')].map((el) => ({ el, y: 0 }));
   }
+  // Pienso, Orquesto, Entrego: se llenan de azul letra por letra con el scroll.
+  const verbs = FX.verbs ? [...document.querySelectorAll('.verb')].map((box) => {
+    const h = box.querySelector('h2'), word = h.textContent, fill = document.createElement('span');
+    fill.className = 'fill';
+    fill.setAttribute('aria-hidden', 'true');
+    const letters = [...word].map((c) => `<span>${c}</span>`).join('');
+    fill.innerHTML = letters;
+    // Base y relleno con las mismas letras, para que coincidan exactas.
+    h.setAttribute('aria-label', word);
+    h.innerHTML = `<span class="base" aria-hidden="true">${letters}</span>`;
+    h.append(fill);
+    return { box, h, letters: [...fill.children], top: 0, sign: box.classList.contains('verb-r') ? -1 : 1, last: -1 };
+  }) : [];
+  if (verbs.length) root.classList.add('js-verbs');
+  const fitVerbs = () => {
+    if (!verbs.length) return;
+    const w = verbs[0].box.clientWidth;
+    verbs.forEach((v) => { v.h.style.fontSize = '100px'; });
+    const span = document.createElement('span');
+    span.style.cssText = 'display:inline-block;visibility:hidden;position:absolute';
+    span.textContent = 'Orquesto'; verbs[1].h.append(span);
+    const wide = span.getBoundingClientRect().width; span.remove();
+    const px = Math.min((100 * w * 0.94) / wide, innerHeight * 0.3);
+    verbs.forEach((v) => { v.h.style.fontSize = px + 'px'; });
+  };
+  fitVerbs();
   let vh = 1, max = 1, ticking = false;
   const measure = () => {
     vh = innerHeight; max = Math.max(1, root.scrollHeight - vh);
+    fitVerbs();
+    verbs.forEach((v) => { const t = v.h.style.translate; v.h.style.translate = 'none'; v.top = v.h.getBoundingClientRect().top + scrollY; v.h.style.translate = t; });
     titles.forEach((t) => { const tr = t.el.style.translate; t.el.style.translate = 'none'; t.top = t.el.getBoundingClientRect().top + scrollY; t.el.style.translate = tr; });
     if (tl) {
       const r = rowsBox.getBoundingClientRect();
@@ -92,6 +120,19 @@ const FX = { field: true, thread: true, titles: true, timeline: true, magnet: tr
       if (t.el.offsetParent === null) return;
       const p = clamp((t.top - y - vh * 0.6) / (vh * 0.4), 0, 1); // ya alineado al llegar al 60 % de la pantalla
       t.el.style.translate = `${(p * 7).toFixed(2)}vw 0`;
+    });
+    verbs.forEach((v) => {
+      const p = clamp((y + vh * 0.9 - v.top) / (vh * 0.42), 0, 1);
+      if (p === v.last) return;
+      v.last = p;
+      const n = v.letters.length;
+      v.letters.forEach((l, i) => {
+        const o = clamp(p * (n + 2) - i, 0, 1);
+        l.style.opacity = o;
+        l.style.transform = `translateY(${((1 - o) * 0.05).toFixed(3)}em)`;
+      });
+      v.h.style.translate = `${(v.sign * (1 - p) * 4).toFixed(2)}vw 0`;
+      v.box.classList.toggle('done', p > 0.86);
     });
     if (tl) {
       const p = clamp((y + vh * 0.72 - tlTop) / tlH, 0, 1);
