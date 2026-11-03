@@ -1,5 +1,5 @@
 // Efectos diferidos. Para apagar uno, poné su valor en false.
-const FX = { field: true, thread: true, titles: true, timeline: true, preview: false, ribbon: true, ring: true, magnet: true, copy: true, konami: true };
+const FX = { field: true, thread: true, titles: true, timeline: true, preview: false, ribbon: true, ring: true, magnet: true, copy: true, konami: true, favicon: true };
 
 (() => {
   const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -51,6 +51,26 @@ const FX = { field: true, thread: true, titles: true, timeline: true, preview: f
   }
 
   if (calm) return;
+
+  // Favicon: una señal recorre el borde del ícono.
+  if (FX.favicon) {
+    const link = document.querySelector('link[rel="icon"]');
+    const cv = Object.assign(document.createElement('canvas'), { width: 64, height: 64 });
+    const c = cv.getContext('2d');
+    const nf = new Path2D('M13 48V16h6l13 19V16h6v32h-6L19 29v19zM43 48V16h13v5.5h-7v7.5h6v5.5h-6V48z');
+    const STEPS = 28, m = 5, len = 64 - m * 2;
+    let i = 0;
+    const paint = () => {
+      c.fillStyle = '#2438e8'; c.fillRect(0, 0, 64, 64);
+      c.fillStyle = '#fff'; c.fill(nf);
+      const d = (i / STEPS) * len * 4, side = Math.floor(d / len) % 4, o = d % len;
+      const [x, y] = [[m + o, m], [m + len, m + o], [m + len - o, m + len], [m, m + len - o]][side];
+      c.beginPath(); c.arc(x, y, 5, 0, 6.3); c.fillStyle = '#fff'; c.fill();
+      link.href = cv.toDataURL('image/png');
+      i = (i + 1) % STEPS;
+    };
+    setInterval(paint, 130); // si la pestaña está en segundo plano, el navegador lo baja solo
+  }
 
   // Scroll: hilo de la señal, títulos y línea de tiempo comparten un solo cálculo.
   const thread = FX.thread ? document.createElement('div') : null;
