@@ -508,6 +508,7 @@
   openBtn.hidden = false;
   openBtn.addEventListener('click', () => {
     root.classList.add('show-on'); // la página de abajo descansa mientras corre la función
+    openBtn.classList.add('played'); // ya la vio: el botón deja de llamar la atención
     tw.showModal();
     begin();
   });
