@@ -250,8 +250,9 @@ html.intro .play{--cvs:2.3s}
 .flow{position:fixed;left:0;top:0;z-index:15;pointer-events:none}
 .flow[hidden]{display:none}
 .show-on .flow{visibility:hidden}
-body.flow-grab{cursor:grab}
-body.flow-drag,body.flow-drag *{cursor:grabbing!important;user-select:none}
+/* Títulos y líneas en su propia capa: moverlos al scrollear no vuelve a pintar la página */
+.work h2,.exp h2,.ask h2,.stack-s h2{will-change:translate}
+.thread,.rows .tl{will-change:transform}
 .flow-toggle{display:block;margin-top:22px;padding:6px 0;font:inherit;font-size:.875rem;color:rgba(255,255,255,.82);background:none;border:0;text-decoration:underline;text-underline-offset:.2em;cursor:pointer}
 .flow-toggle:hover{color:#fff}
 .flow-toggle[hidden]{display:none}

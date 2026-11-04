@@ -48,13 +48,21 @@ const FX = { flow: true, field: false, thread: true, titles: true, timeline: tru
     const nf = new Path2D('M13 48V16h6l13 19V16h6v32h-6L19 29v19zM43 48V16h13v5.5h-7v7.5h6v5.5h-6V48z');
     const STEPS = 28, m = 5, len = 64 - m * 2;
     let i = 0;
+    // Cada cuadro se genera una sola vez, y el ícono descansa mientras scrolleás.
+    const urls = [];
+    let lastScroll = 0;
+    addEventListener('scroll', () => { lastScroll = performance.now(); }, { passive: true });
     const paint = () => {
-      c.fillStyle = '#2438e8'; c.fillRect(0, 0, 64, 64);
-      c.fillStyle = '#fff'; c.fill(nf);
-      const d = (i / STEPS) * len * 4, side = Math.floor(d / len) % 4, o = d % len;
-      const [x, y] = [[m + o, m], [m + len, m + o], [m + len - o, m + len], [m, m + len - o]][side];
-      c.beginPath(); c.arc(x, y, 5, 0, 6.3); c.fillStyle = '#fff'; c.fill();
-      link.href = cv.toDataURL('image/png');
+      if (performance.now() - lastScroll < 400) return;
+      if (!urls[i]) {
+        c.fillStyle = '#2438e8'; c.fillRect(0, 0, 64, 64);
+        c.fillStyle = '#fff'; c.fill(nf);
+        const d = (i / STEPS) * len * 4, side = Math.floor(d / len) % 4, o = d % len;
+        const [x, y] = [[m + o, m], [m + len, m + o], [m + len - o, m + len], [m, m + len - o]][side];
+        c.beginPath(); c.arc(x, y, 5, 0, 6.3); c.fillStyle = '#fff'; c.fill();
+        urls[i] = cv.toDataURL('image/png');
+      }
+      link.href = urls[i];
       i = (i + 1) % STEPS;
     };
     setInterval(paint, 130); // si la pestaña está en segundo plano, el navegador lo baja solo
