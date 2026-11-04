@@ -180,7 +180,8 @@ html.intro .cv{--cv:2.3s}
 .skills>div:last-child{border-bottom:1px solid rgba(255,255,255,.2)}
 .skills dt{color:#aab3c5;font-size:.95rem}
 .skills dd{margin:0;font-size:clamp(1.3rem,2.7vw,2.35rem);font-weight:600;font-stretch:82%;letter-spacing:-.012em;line-height:1.14}
-.skills>div:nth-child(4) dd{color:#a9b4ff}
+.skills>div:nth-child(10) dd{color:#a9b4ff}
+.stack-lead{margin-top:16px;max-width:56ch;font-size:1.15rem;color:#cfd5e2}
 
 /* Pienso, Orquesto, Entrego */
 .verbs{position:relative;display:grid;grid-template-columns:repeat(3,1fr);gap:0 clamp(24px,4vw,56px);padding-block:18px clamp(20px,4vh,44px);margin-top:clamp(-40px,-3vw,-12px)}

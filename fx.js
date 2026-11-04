@@ -167,7 +167,15 @@
     for (let i = 0; i < MAX; i++) { p[i * 2] = lerp(-W * margin, W * (1 + margin), Math.random()); p[i * 2 + 1] = lerp(-H * margin, H * (1 + margin), Math.random()); }
     return p;
   }
-  const REEL = ['Angular', 'React', 'Flutter', 'Node.js', 'Rust', '', 'Web', 'Móvil', 'Escritorio'];
+  const REEL = ['Angular', 'React', 'Flutter', 'Node.js', 'Python', 'PostgreSQL', 'Docker', 'AWS', '', 'Web', 'Móvil', 'Escritorio'];
+  // Cuánto dura cada tecnología: arranca con calma y acelera, dentro del mismo tiempo total.
+  const REEL_N = 8, REEL_DUR = [0.42, 0.36, 0.32, 0.28, 0.26, 0.26, 0.25, 0.25];
+  const reelStep = (t) => {
+    let s = t - 2.85, i = 0;
+    if (s < 0) return { i: -1, f: 0 };
+    while (i < REEL_N && s >= REEL_DUR[i]) { s -= REEL_DUR[i]; i++; }
+    return { i, f: i < REEL_N ? s / REEL_DUR[i] : 0 };
+  };
   const photo = new Image();
   photo.src = 'images/foto-perfil.webp';
 
@@ -296,7 +304,7 @@
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     const fs = fit(['Full Stack'], W * 0.9, H * 0.36); fs.y = H * 0.46;
     const fs2 = fit(['+4 años en producción'], W * 0.8, H * 0.07); fs2.y = fs.y + fs.px * 0.62 + fs2.px * 0.55;
-    const reel = fit(['Escritorio'], W * 0.84, H * 0.21);
+    const reel = fit(['PostgreSQL'], W * 0.84, H * 0.21);
     const rh = reel.px * 1.14;
     const miles = fit(narrow ? ['Miles de', 'personas'] : ['Miles de personas'], W * 0.88, H * 0.38); miles.y = H * 0.45;
     const miles2 = fit(['usan mis apps cada día'], W * 0.8, H * 0.07); miles2.y = miles.y + miles.h / 2 + miles2.px * 0.75;
@@ -330,7 +338,7 @@
     }
     const wme = maskOf((c) => {
       c.font = reel.font;
-      [6, 7, 8].forEach((i) => c.fillText(REEL[i], W / 2, H / 2 + (i - 7) * rh));
+      [9, 10, 11].forEach((i) => c.fillText(REEL[i], W / 2, H / 2 + (i - 10) * rh));
     });
     L = {
       fs, fs2, reel, rh, miles, miles2, ia2, l1, l2, name, role, dia, ring, portrait,
@@ -375,10 +383,10 @@
     ctx.beginPath(); ctx.arc(W / 2, H / 2, Math.hypot(W, H) * 0.56 * t, 0, 6.3); ctx.fill();
   }
   function reelPos(t) {
-    const u = (t - 2.85) / 0.48, i = Math.floor(u);
+    const { i, f: g } = reelStep(t);
     if (i < 0) return -1.2;
-    if (i < 5) return lerp(i === 0 ? -1.2 : i - 1, i, out4(map(u - i, 0, 0.55)));
-    return 4 + 3 * inOut(map(t, 5.25, 5.85));
+    if (i < REEL_N) return lerp(i === 0 ? -1.2 : i - 1, i, out4(map(g, 0, 0.55)));
+    return REEL_N - 1 + 3 * inOut(map(t, 5.25, 5.85));
   }
   // Luces del carrete. Escenario, palabras, halos y reflejos se generan una sola vez;
   // en cada cuadro solo se copian, así el brillo casi no cuesta nada.
@@ -464,10 +472,10 @@
     const pos = reelPos(T), v = Math.abs(reelPos(T + 0.016) - pos);
     const smear = 1 + Math.min(0.2, v * 1.4), block = map(T, 5.65, 5.9), px = L.reel.px;
     const contact = px * 0.38, shift = L.rh * inOut(map(T, 5.25, 5.85)), floor = H / 2 + contact + shift;
-    const u = (T - 2.85) / 0.48, kick = u >= 0 && u < 5 ? Math.exp(-(u - Math.floor(u)) * 3.2) : Math.exp(-Math.max(0, T - 5.8) * 3);
+    const st8 = reelStep(T), kick = st8.i >= 0 && st8.i < REEL_N ? Math.exp(-st8.f * 3.2) : Math.exp(-Math.max(0, T - 5.8) * 3);
     const stage = map(T, 2.85, 3.1);
-    const first = Math.max(0, Math.floor(pos) - 2), lastI = Math.min(8, Math.ceil(pos) + 2);
-    const power = (d, i) => (i < 6 ? clamp(1 - d * 2.2) : block);
+    const first = Math.max(0, Math.floor(pos) - 2), lastI = Math.min(REEL.length - 1, Math.ceil(pos) + 2);
+    const power = (d, i) => (i < REEL_N ? clamp(1 - d * 2.2) : block);
     if (stage > 0) {
       ctx.globalAlpha = stage;
       const st = reelStage(); ctx.drawImage(st, 0, snap(shift), st.width / D, st.height / D);
@@ -493,7 +501,7 @@
         ctx.drawImage(fx.halo, snap(W / 2 - gw / 2), snap(y - gh / 2), gw, gh);
       }
       const near = Math.max(0.09, 1 - d * 0.9), rise = i > pos ? clamp(1 - (y - floor) / (px * 0.5)) : 1;
-      const a = (i >= 6 ? lerp(near, 1, block) : near) * rise * alpha;
+      const a = (i > REEL_N ? lerp(near, 1, block) : near) * rise * alpha;
       if (a < 0.005) continue;
       const tw = fx.ink.width / D, th = (fx.ink.height / D) * (smear < 1.015 ? 1 : smear), wx = snap(W / 2 - tw / 2), wy = snap(y - th / 2);
       const lit = clamp(hit * (0.8 + 0.2 * kick) * 1.25);
