@@ -1,5 +1,5 @@
 // Una corriente de puntos sale de tu foto, baja con vos por la página y termina orbitando tu correo.
-// Se dibuja con un scroll suavizado propio: así el movimiento nunca hereda los saltos de la rueda del mouse.
+// Cada punto tiene física propia: inercia, rebote contra tu foto y reacción al scroll y al dedo.
 (() => {
   if (!FX.flow || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   const fine = matchMedia('(hover: hover) and (pointer: fine)').matches;
@@ -85,105 +85,153 @@
     buildPath();
   };
 
-  const N = fine ? 340 : 170;
+  const N = fine ? 340 : 180;
   let limit = N;
+  // Cada punto tiene posición, velocidad y su propio resorte: los de adentro siguen más firme y los de afuera llegan después.
   const dots = Array.from({ length: N }, (_, i) => {
     const spread = Math.random() ** 2.2;
-    return { a: Math.random() * 6.283, sp: spread, v: (0.05 + Math.random() * 0.1) * (1.2 - spread * 0.7), s: 1.2 + Math.random() * 1.4, sx: Math.random(), sy: Math.random(), o: 0.28 + (1 - spread) * 0.62,
-      d: Math.random() * 0.45, ph: i / N + (Math.random() - 0.5) * 0.02, off: Math.random() * 2 - 1, w: 0.6 + Math.random() * 1.6, f: Math.random() * 6.283, px: 0, py: 0, al: 0, lt: 0, rx: 0, ry: 0, tx: 0, ty: 0 };
+    return { a: Math.random() * 6.283, sp: spread, v: (0.05 + Math.random() * 0.1) * (1.2 - spread * 0.7), s: 1.2 + Math.random() * 1.4, o: 0.28 + (1 - spread) * 0.62,
+      d: Math.random() * 0.45, ph: i / N + (Math.random() - 0.5) * 0.02, off: Math.random() * 2 - 1, w: 0.6 + Math.random() * 1.6, f: Math.random() * 6.283,
+      om: 22 - spread * 11 + Math.random() * 3, ze: 0.6 + Math.random() * 0.22, x: Math.random(), y: Math.random(), vx: 0, vy: 0, lu: 0, al: 0, lt: 0 };
   });
 
-  let curS = scrollY, s1 = curS, sm = curS, lastSm = curS, uNow = 0, flow = 0, vel = 0, last = 0, raf = 0, frames = 0, slow = 0, t0 = 0;
+  let trails = true, curS = scrollY, lastS = curS, uNow = 0, flow = 0, vel = 0, spin = 0, last = 0, raf = 0, frames = 0, slow = 0, t0 = 0;
+  // El scroll se guarda al llegar el evento: leerlo dentro del cuadro obligaría a recalcular la página.
   addEventListener('scroll', () => { curS = scrollY; }, { passive: true });
-  const pointer = { x: -9999, y: -9999, on: false };
+  const pointer = { x: -9999, y: -9999, vx: 0, vy: 0, on: false, str: 0, at: 0 };
   const inDark = (y) => dark.some(([a, b]) => y >= a && y < b);
+  const VMAX = 3500;
 
   const draw = (now) => {
     raf = 0;
     if (stopped || document.hidden || root.classList.contains('show-on')) return;
     raf = requestAnimationFrame(draw);
-    const dtMs = Math.max(0, Math.min(now - last, 50)); last = now;
+    const dtMs = Math.max(0, Math.min(now - last, 40)); last = now;
     if (!ready || !dtMs) return;
     const dt = dtMs / 1000, T = (now - t0) / 1000;
     if (T > 2.5) {
       frames++; if (dtMs > 26) slow++;
-      // Si el equipo sufre, primero baja la resolución del lienzo y después la cantidad de puntos.
-      if (frames >= 60) { if (slow > 24) { if (density > 1) { density = 1; applyDensity(); } else if (limit > 90) limit = Math.round(limit * 0.8); } frames = 0; slow = 0; }
+      // Si el equipo sufre, primero se sacan las estelas y baja la resolución; después, la cantidad de puntos.
+      if (frames >= 60) { if (slow > 24) { if (trails || density > 1) { trails = false; if (density > 1) { density = 1; applyDensity(); } } else if (limit > 90) limit = Math.round(limit * 0.8); } frames = 0; slow = 0; }
     }
-    // Dos filtros seguidos: la rueda da saltos, pero lo que se dibuja arranca y frena sin escalones.
-    const kS = 1 - Math.exp(-dt / 0.07);
-    s1 += (curS - s1) * kS; sm += (s1 - sm) * kS;
-    if (Math.abs(curS - sm) < 0.02) sm = s1 = curS;
-    vel += ((sm - lastSm) / dt - vel) * (1 - Math.exp(-dt / 0.14)); lastSm = sm;
+    vel += ((curS - lastS) / dt - vel) * (1 - Math.exp(-dt / 0.1)); lastS = curS;
     const speed = clamp(Math.abs(vel) / 2600);
+    // El scroll le da un giro a la órbita, que sube rápido y se apaga despacio, como un volante.
+    const spinT = clamp(vel / 1100, -1.9, 1.9);
+    spin += (spinT - spin) * (1 - Math.exp(-dt / (Math.abs(spinT) > Math.abs(spin) ? 0.1 : 0.85)));
+    // El dedo o el cursor empujan con su propia velocidad.
+    pointer.str += ((pointer.on ? 1 : 0) - pointer.str) * (1 - Math.exp(-dt / 0.14));
+    const dragK = Math.exp(-dt / 0.12);
+    pointer.vx *= dragK; pointer.vy *= dragK;
+    const fR = W < 600 ? 95 : 125, fR2 = fR * fR, useF = pointer.str > 0.01;
 
     ctx.clearRect(0, 0, W, H);
-    uNow += (centerU(sm + H * 0.5) - uNow) * (1 - Math.exp(-dt / 0.3));
+    uNow += (centerU(curS + H * 0.5) - uNow) * (1 - Math.exp(-dt / 0.3));
     flow += dt * (24 + vel * 0.42);
     const Lw = H * 2 + W * 1.2, u0 = uNow - Lw / 2, width = (W < 600 ? 7 : 15) * (1 - speed * 0.72) + 2;
-    const rel1 = sm / (H * 0.32), end1 = (sm - (maxS - H * 0.55)) / (H * 0.5), trail = speed * 20, kP = 1 - Math.exp(-dt / 0.12);
-    const sign = vel < 0 ? -1 : 1;
+    const rel1 = (curS - (pc.y + pc.r - H * 0.35)) / (H * 0.3), end1 = (curS - (maxS - H * 0.55)) / (H * 0.5);
+    const pcy = pc.y - curS, pR = pc.r * 1.05, pR2 = pR * pR, photoOn = pcy > -pR - 40 && pcy < H + pR + 40;
+    const breath = 1 + Math.min(0.2, speed * 0.32), sub = dt > 0.034 ? 2 : 1, h = dt / sub;
     const lineC = [], lineW = [];
     for (let pass = 0; pass < 2; pass++) {
       ctx.fillStyle = pass ? WHITE : COBALT;
       for (let i = 0; i < limit; i++) {
         const p = dots[i];
         if (pass === 0) {
-          p.a += p.v * dt;
-          const e = 1 - (1 - clamp((T - p.d) / 1.4)) ** 3;
-          const r = pc.r * (1.16 + p.sp * 0.95);
-          let x = p.sx * W + (pc.x + Math.cos(p.a) * r - p.sx * W) * e, y = p.sy * H + (pc.y + Math.sin(p.a) * r * 0.96 - p.sy * H) * e, al = p.o;
+          if (p.x <= 1 && p.y <= 1 && !p.lu) { p.x *= W; p.y *= H; p.lu = 1; }
+          p.a += (p.v + spin * (1.25 - p.sp * 0.7)) * dt;
+          const e = clamp((T - p.d) / 1.1), r = pc.r * (1.16 + p.sp * 0.95) * breath;
+          let tx = pc.x + Math.cos(p.a) * r, ty = pc.y + Math.sin(p.a) * r * 0.96, al = p.o * e;
           const ri = smooth(clamp((rel1 - p.d) / 0.55));
           if (ri > 0) {
             const rel = (((p.ph * Lw + flow - u0) % Lw) + Lw) % Lw, u = u0 + rel;
             let fa = Math.min(1, rel / 180, (Lw - rel) / 180);
             if (u < 0 || u >= Ltot) fa = 0;
             // Interpola entre muestras del recorrido: el punto avanza en continuo, nunca de a saltos.
-            const q = clamp(u, 0, Ltot - 0.01) / STEP, k = Math.floor(q), f = q - k, k2 = Math.min(nPath - 1, k + 1);
-            const nx = NX[k] + (NX[k2] - NX[k]) * f, ny = NY[k] + (NY[k2] - NY[k]) * f;
+            const q = clamp(u, 0, Ltot - 0.01) / STEP, k = Math.floor(q), g = q - k, k2 = Math.min(nPath - 1, k + 1);
+            const nx = NX[k] + (NX[k2] - NX[k]) * g, ny = NY[k] + (NY[k2] - NY[k]) * g;
             const o = p.off * width * (0.7 + 0.3 * Math.sin(T * p.w + p.f));
-            const fx = X[k] + (X[k2] - X[k]) * f + nx * o, fy = Y[k] + (Y[k2] - Y[k]) * f + ny * o;
-            x += (fx - x) * ri; y += (fy - y) * ri; al += (fa * (0.45 + p.o * 0.55) - al) * ri;
-            p.tx = TX[k]; p.ty = TY[k];
+            const fx = X[k] + (X[k2] - X[k]) * g + nx * o, fy = Y[k] + (Y[k2] - Y[k]) * g + ny * o;
+            tx += (fx - tx) * ri; ty += (fy - ty) * ri; al += (fa * (0.45 + p.o * 0.55) - al) * ri;
+            // Al dar la vuelta dentro de la ventana reaparece sin cruzar la pantalla.
+            if (Math.abs(u - p.ou) > Lw * 0.5 && ri > 0.5) { p.x = tx; p.y = ty - curS; p.vx = 0; p.vy = 0; }
+            p.ou = u;
           }
           const ei = smooth(clamp((end1 - p.d) / 0.5));
           if (ei > 0) {
             const a2 = p.f + T * p.v * 0.7, q = 1 + p.sp * 0.4;
-            x += (end.x + Math.cos(a2) * end.rx * q - x) * ei; y += (end.y + Math.sin(a2) * end.ry * q - y) * ei; al += (0.35 + p.o * 0.6 - al) * ei;
+            tx += (end.x + Math.cos(a2) * end.rx * q - tx) * ei; ty += (end.y + Math.sin(a2) * end.ry * q - ty) * ei; al += (0.35 + p.o * 0.6 - al) * ei;
           }
-          const sx = x, sy = y - sm;
-          // El cursor abre un espacio entre los puntos, sin empujarlos de golpe.
-          let tx = 0, ty = 0;
-          if (pointer.on) {
-            const dx = sx - pointer.x, dy = sy - pointer.y, d2 = dx * dx + dy * dy;
-            if (d2 < 14400) { const d = Math.sqrt(d2) || 1, g = (120 - d) / 120 * 30; tx = dx / d * g; ty = dy / d * g; }
+          ty -= curS;
+          // Fuerza del dedo: abre espacio y arrastra los puntos en la dirección del gesto.
+          let fx0 = 0, fy0 = 0;
+          if (useF) {
+            const dx = p.x - pointer.x, dy = p.y - pointer.y, d2 = dx * dx + dy * dy;
+            if (d2 < fR2) {
+              const d = Math.sqrt(d2) || 1, g = 1 - d / fR, pow = g * g * pointer.str;
+              fx0 = dx / d * pow * 5200 + pointer.vx * g * pointer.str * 9;
+              fy0 = dy / d * pow * 5200 + pointer.vy * g * pointer.str * 9;
+            }
           }
-          p.rx += (tx - p.rx) * kP; p.ry += (ty - p.ry) * kP;
-          p.px = sx + p.rx; p.py = sy + p.ry; p.al = al; p.lt = inDark(y) ? 1 : 0;
+          // Resorte con algo de rebote: el punto tiene inercia y llega tarde a donde tiene que estar.
+          const w = p.om * (0.25 + 0.75 * e), kS = w * w, cS = 2 * p.ze * w;
+          for (let n = 0; n < sub; n++) {
+            p.vx += (kS * (tx - p.x) - cS * p.vx + fx0) * h;
+            p.vy += (kS * (ty - p.y) - cS * p.vy + fy0) * h;
+            p.x += p.vx * h; p.y += p.vy * h;
+          }
+          if (p.vx > VMAX) p.vx = VMAX; else if (p.vx < -VMAX) p.vx = -VMAX;
+          if (p.vy > VMAX) p.vy = VMAX; else if (p.vy < -VMAX) p.vy = -VMAX;
+          // Tu foto es un cuerpo sólido: los puntos la rodean y rebotan contra ella.
+          if (photoOn) {
+            const dx = p.x - pc.x, dy = p.y - pcy, d2 = dx * dx + dy * dy;
+            if (d2 < pR2) {
+              const d = Math.sqrt(d2) || 1, nx = dx / d, ny = dy / d, vn = p.vx * nx + p.vy * ny;
+              p.x = pc.x + nx * pR; p.y = pcy + ny * pR;
+              if (vn < 0) { p.vx -= vn * nx * 1.55; p.vy -= vn * ny * 1.55; }
+            }
+          }
+          p.al = al; p.lt = inDark(p.y + curS) ? 1 : 0;
         }
-        if (p.lt !== pass || p.al < 0.02 || p.py < -10 || p.py > H + 10) continue;
+        if (p.lt !== pass || p.al < 0.02 || p.y < -10 || p.y > H + 10) continue;
         ctx.globalAlpha = p.al;
-        ctx.fillRect(p.px, p.py, p.s, p.s);
-        if (trail > 1.5 && rel1 > 1.2 && end1 < 0) (pass ? lineW : lineC).push(p);
+        ctx.fillRect(p.x, p.y, p.s, p.s);
+        if (trails && p.vx * p.vx + p.vy * p.vy > 40000) (pass ? lineW : lineC).push(p);
       }
     }
-    // Estelas: crecen de a poco con la velocidad, para que no aparezcan de golpe.
-    if (trail > 1.5) {
-      ctx.lineWidth = 1; ctx.globalAlpha = 0.42 * clamp((trail - 1.5) / 6);
-      [[lineC, COBALT], [lineW, WHITE]].forEach(([list, color]) => {
-        if (!list.length) return;
-        ctx.strokeStyle = color; ctx.beginPath();
-        for (const p of list) { ctx.moveTo(p.px, p.py); ctx.lineTo(p.px - p.tx * trail * sign, p.py - p.ty * trail * sign); }
-        ctx.stroke();
-      });
-    }
+    // Estelas según la velocidad real de cada punto.
+    ctx.lineWidth = 1; ctx.globalAlpha = 0.34;
+    [[lineC, COBALT], [lineW, WHITE]].forEach(([list, color]) => {
+      if (!list.length) return;
+      ctx.strokeStyle = color; ctx.beginPath();
+      for (const p of list) {
+        const vm = Math.hypot(p.vx, p.vy), len = Math.min(26, (vm - 200) * 0.018);
+        ctx.moveTo(p.x, p.y); ctx.lineTo(p.x - p.vx / vm * len, p.y - p.vy / vm * len);
+      }
+      ctx.stroke();
+    });
     ctx.globalAlpha = 1;
   };
   const go = () => { if (!raf && !stopped && !document.hidden) { last = performance.now(); raf = requestAnimationFrame(draw); } };
 
+  const feel = (x, y, t) => {
+    const dtp = Math.max(8, t - pointer.at);
+    if (pointer.at && t - pointer.at < 120) {
+      pointer.vx += ((x - pointer.x) / dtp * 1000 - pointer.vx) * 0.5;
+      pointer.vy += ((y - pointer.y) / dtp * 1000 - pointer.vy) * 0.5;
+    }
+    pointer.x = x; pointer.y = y; pointer.at = t; pointer.on = true;
+  };
   if (fine) {
-    addEventListener('pointermove', (e) => { pointer.x = e.clientX; pointer.y = e.clientY; pointer.on = true; }, { passive: true });
+    addEventListener('pointermove', (e) => feel(e.clientX, e.clientY, e.timeStamp), { passive: true });
     document.addEventListener('pointerleave', () => { pointer.on = false; });
+  } else {
+    const touch = (e) => { const t = e.touches[0]; if (t) feel(t.clientX, t.clientY, e.timeStamp); };
+    addEventListener('touchstart', (e) => { pointer.at = 0; touch(e); }, { passive: true });
+    addEventListener('touchmove', touch, { passive: true });
+    const lift = () => { pointer.on = false; };
+    addEventListener('touchend', lift, { passive: true });
+    addEventListener('touchcancel', lift, { passive: true });
   }
 
   // Apagar y encender
@@ -197,7 +245,7 @@
   paint();
 
   t0 = performance.now();
-  const start = () => { curS = s1 = sm = lastSm = scrollY; measure(); uNow = centerU(sm + H * 0.5); go(); };
+  const start = () => { curS = lastS = scrollY; measure(); uNow = centerU(curS + H * 0.5); go(); };
   (window.requestIdleCallback || ((f) => setTimeout(f, 300)))(start);
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => setTimeout(() => { if (ready) measure(); }, 80));
   addEventListener('load', () => setTimeout(() => { if (ready) measure(); }, 120));
