@@ -336,13 +336,13 @@
       fs, fs2, reel, rh, miles, miles2, ia2, l1, l2, name, role, dia, ring, portrait,
       end: { cx: W / 2, cy },
       mFs: maskOf((c) => put(c, fs)), mWme: wme, mMiles: maskOf((c) => put(c, miles)),
-      net: buildNet(netH, W / 2, netY), mL1: maskOf((c) => put(c, l1)), stars: scatter(), crowd: scatter(0.02),
+      fx: [], stage: null, net: buildNet(netH, W / 2, netY), mL1: maskOf((c) => put(c, l1)), stars: scatter(), crowd: scatter(0.02),
     };
     active = W < 600 ? 900 : MAX;
   }
   function sizeCanvas() {
     W = innerWidth; H = innerHeight;
-    D = Math.min(devicePixelRatio || 1, 2);
+    D = Math.min(devicePixelRatio || 1, innerWidth >= 1200 ? 1.5 : 1.75);
     D = Math.min(D, Math.sqrt(3400000 / (W * H))); // tope de píxeles para que ande en cualquier equipo
     cv.width = Math.round(W * D); cv.height = Math.round(H * D);
     if ('textRendering' in ctx) ctx.textRendering = 'geometricPrecision';
@@ -380,20 +380,127 @@
     if (i < 5) return lerp(i === 0 ? -1.2 : i - 1, i, out4(map(u - i, 0, 0.55)));
     return 4 + 3 * inOut(map(t, 5.25, 5.85));
   }
+  // Luces del carrete. Escenario, palabras, halos y reflejos se generan una sola vez;
+  // en cada cuadro solo se copian, así el brillo casi no cuesta nada.
+  const makeLayer = (cw, ch, opts) => {
+    const c = document.createElement('canvas');
+    c.width = Math.ceil(cw); c.height = Math.ceil(ch);
+    const x = c.getContext('2d', opts);
+    x.textAlign = 'center'; x.textBaseline = 'middle';
+    return [c, x];
+  };
+  function reelStage() {
+    if (L.stage) return L.stage;
+    const px = L.reel.px, floor = H / 2 + px * 0.38, extra = L.rh + 4;
+    const [c, x] = makeLayer(W * D, (H + extra) * D, { alpha: false });
+    x.scale(D, D);
+    x.fillStyle = rgba(PAP); x.fillRect(0, 0, W, H + extra);
+    const back = x.createRadialGradient(W / 2, H / 2, 0, W / 2, H / 2, Math.max(W, H) * 0.56);
+    back.addColorStop(0, rgba(COB, 0.1)); back.addColorStop(0.5, rgba(COB, 0.028)); back.addColorStop(1, rgba(COB, 0));
+    x.fillStyle = back; x.fillRect(0, 0, W, H + extra);
+    const fl = x.createLinearGradient(0, floor, 0, Math.min(H, floor + H * 0.34));
+    fl.addColorStop(0, 'rgba(196,204,222,.42)'); fl.addColorStop(1, 'rgba(196,204,222,0)');
+    x.fillStyle = fl; x.fillRect(0, floor, W, H + extra - floor);
+    const hw = Math.min(W * 0.46, W * 0.2 + px * 1.3), line = x.createLinearGradient(W / 2 - hw, 0, W / 2 + hw, 0);
+    line.addColorStop(0, rgba(COB, 0)); line.addColorStop(0.5, rgba(COB, 0.4)); line.addColorStop(1, rgba(COB, 0));
+    x.fillStyle = line; x.fillRect(W / 2 - hw, floor - 0.75, hw * 2, 1.5);
+    L.stage = c;
+    return c;
+  }
+  function reelFx(i) {
+    const word = REEL[i];
+    if (!word || L.fx[i]) return L.fx[i];
+    const px = L.reel.px;
+    ctx.font = L.reel.font;
+    const tw = ctx.measureText(word).width, tallH = px * 1.4, tallW = tw + px * 0.2;
+    const paintWord = (fill) => {
+      const [c, x] = makeLayer(tallW * D, tallH * D);
+      x.font = font(px * D); x.fillStyle = fill(x); x.fillText(word, c.width / 2, c.height / 2);
+      return c;
+    };
+    const ink = paintWord(() => rgba(INK));
+    // Material con luz propia: más claro arriba, como si se encendiera desde adentro.
+    const lit = paintWord((x) => {
+      const m = tallH * D / 2, g = x.createLinearGradient(0, m - px * D * 0.42, 0, m + px * D * 0.42);
+      g.addColorStop(0, 'rgb(92,110,255)'); g.addColorStop(0.55, rgba(COB)); g.addColorStop(1, 'rgb(27,42,196)');
+      return g;
+    });
+    // Halo: el brillo se expande alrededor de la palabra. Es difuso, así que alcanza con baja resolución.
+    const pad = px * 0.5, gw = tw + pad * 2, gh = px * 1.1 + pad * 2, gs = 0.33 * D;
+    const [glow, g] = makeLayer(gw * gs, gh * gs), far = glow.width * 2;
+    g.font = font(px * gs);
+    [[0.5, 0.42], [0.22, 0.6], [0.08, 0.7]].forEach(([blur, al]) => {
+      g.shadowColor = rgba(COB, al); g.shadowBlur = px * gs * blur; g.shadowOffsetX = far;
+      g.fillText(word, glow.width / 2 - far, glow.height / 2);
+    });
+    // Se pasa una vez a tamaño final: copiarlo sin reescalar es mucho más barato en cada cuadro.
+    const [halo, hx] = makeLayer(gw * D, gh * D);
+    hx.imageSmoothingQuality = 'high';
+    hx.drawImage(glow, 0, 0, halo.width, halo.height);
+    // Reflejo: nítido junto al piso y cada vez más difuso a medida que se aleja.
+    const rs = D, rw = tw + px * 0.4, rh = px * 1.05, contact = px * 0.38 * rs;
+    const [ref, r] = makeLayer(rw * rs, rh * rs), [soft, b] = makeLayer(rw * rs, rh * rs);
+    const mirror = (x) => { x.font = font(px * rs); x.setTransform(1, 0, 0, -1, 0, 2 * contact); };
+    mirror(r); r.fillStyle = rgba(COB); r.fillText(word, ref.width / 2, contact);
+    r.setTransform(1, 0, 0, 1, 0, 0); r.globalCompositeOperation = 'destination-in';
+    let m = r.createLinearGradient(0, 0, 0, ref.height * 0.6); m.addColorStop(0, 'rgba(0,0,0,.95)'); m.addColorStop(1, 'rgba(0,0,0,0)');
+    r.fillStyle = m; r.fillRect(0, 0, ref.width, ref.height); r.globalCompositeOperation = 'source-over';
+    mirror(b); b.shadowColor = rgba(COB, 0.9); b.shadowBlur = px * rs * 0.1; b.shadowOffsetX = far * 3;
+    b.fillText(word, soft.width / 2 - far * 3, contact);
+    b.setTransform(1, 0, 0, 1, 0, 0); b.shadowColor = 'transparent'; b.globalCompositeOperation = 'destination-in';
+    m = b.createLinearGradient(0, 0, 0, soft.height); m.addColorStop(0, 'rgba(0,0,0,.4)'); m.addColorStop(0.5, 'rgba(0,0,0,.42)'); m.addColorStop(1, 'rgba(0,0,0,0)');
+    b.fillStyle = m; b.fillRect(0, 0, soft.width, soft.height);
+    r.drawImage(soft, 0, 0);
+    L.fx[i] = { ink, lit, halo, ref };
+    return L.fx[i];
+  }
+  const snap = (v) => Math.round(v * D) / D;
+  // Si un equipo no llega, se apagan solo los halos: el resto de la escena sigue igual.
+  let reelLast = 0, reelSlow = 0, reelLite = false;
   function drawReel(alpha) {
+    const tn = performance.now();
+    if (tn - reelLast > 40 && tn - reelLast < 400 && ++reelSlow >= 5) reelLite = true;
+    reelLast = tn;
     const pos = reelPos(T), v = Math.abs(reelPos(T + 0.016) - pos);
-    const smear = 1 + Math.min(0.2, v * 1.4), block = map(T, 5.65, 5.9), o = L.reel;
-    ctx.font = o.font;
-    for (let i = Math.max(0, Math.floor(pos) - 2); i <= Math.min(8, Math.ceil(pos) + 2); i++) {
-      if (!REEL[i]) continue;
-      const d = Math.abs(i - pos), y = H / 2 + (i - pos) * L.rh;
-      const near = Math.max(0.09, 1 - d * 0.9), a = i >= 6 ? lerp(near, 1, block) : near;
-      const hit = i < 6 ? clamp(1 - d * 2.2) : block;
-      ctx.fillStyle = rgba(mix(INK, COB, hit * (i < 6 ? 1 : 0)), a * alpha);
-      ctx.setTransform(D, 0, 0, D * smear, 0, D * y * (1 - smear));
-      ctx.fillText(REEL[i], W / 2, y);
+    const smear = 1 + Math.min(0.2, v * 1.4), block = map(T, 5.65, 5.9), px = L.reel.px;
+    const contact = px * 0.38, shift = L.rh * inOut(map(T, 5.25, 5.85)), floor = H / 2 + contact + shift;
+    const u = (T - 2.85) / 0.48, kick = u >= 0 && u < 5 ? Math.exp(-(u - Math.floor(u)) * 3.2) : Math.exp(-Math.max(0, T - 5.8) * 3);
+    const stage = map(T, 2.85, 3.1);
+    const first = Math.max(0, Math.floor(pos) - 2), lastI = Math.min(8, Math.ceil(pos) + 2);
+    const power = (d, i) => (i < 6 ? clamp(1 - d * 2.2) : block);
+    if (stage > 0) {
+      ctx.globalAlpha = stage;
+      const st = reelStage(); ctx.drawImage(st, 0, snap(shift), st.width / D, st.height / D);
     }
-    base();
+    // Reflejos en el piso
+    for (let i = first; i <= lastI; i++) {
+      if (!REEL[i]) continue;
+      const y = H / 2 + (i - pos) * L.rh, gap = floor - (y + contact);
+      if (gap < -px * 0.05 || gap > L.rh * 1.1) continue;
+      const fx = reelFx(i), near = 1 - clamp(gap / (L.rh * 1.1)), hit = power(Math.abs(i - pos), i);
+      const al = (0.1 + 0.68 * hit * (0.8 + 0.3 * kick)) * near * near * stage;
+      if (al < 0.01) continue;
+      ctx.globalAlpha = Math.min(1, al);
+      ctx.drawImage(fx.ref, snap(W / 2 - fx.ref.width / D / 2), snap(floor + Math.max(0, gap)), fx.ref.width / D, fx.ref.height / D);
+    }
+    // Halo y palabra
+    for (let i = first; i <= lastI; i++) {
+      if (!REEL[i]) continue;
+      const d = Math.abs(i - pos), y = H / 2 + (i - pos) * L.rh, hit = power(d, i), fx = reelFx(i);
+      if (hit >= 0.03 && !reelLite) {
+        const gw = fx.halo.width / D, gh = fx.halo.height / D;
+        ctx.globalAlpha = Math.min(1, hit * (0.68 + 0.42 * kick)) * alpha;
+        ctx.drawImage(fx.halo, snap(W / 2 - gw / 2), snap(y - gh / 2), gw, gh);
+      }
+      const near = Math.max(0.09, 1 - d * 0.9), rise = i > pos ? clamp(1 - (y - floor) / (px * 0.5)) : 1;
+      const a = (i >= 6 ? lerp(near, 1, block) : near) * rise * alpha;
+      if (a < 0.005) continue;
+      const tw = fx.ink.width / D, th = (fx.ink.height / D) * (smear < 1.015 ? 1 : smear), wx = snap(W / 2 - tw / 2), wy = snap(y - th / 2);
+      const lit = clamp(hit * (0.8 + 0.2 * kick) * 1.25);
+      if (lit < 0.995) { ctx.globalAlpha = a * (1 - lit * 0.999); ctx.drawImage(fx.ink, wx, wy, tw, th); }
+      if (lit > 0.005) { ctx.globalAlpha = a * lit; ctx.drawImage(fx.lit, wx, wy, tw, th); }
+    }
+    ctx.globalAlpha = 1;
   }
   function particleAlpha() {
     if (T < 1.15) return Math.min(map(T, 0, 0.12), 1 - map(T, 0.85, 1.15));
@@ -435,7 +542,7 @@
       iris(COB, inOut(map(T, 14.45, 14.9)));
     } else paint(COB);
 
-    const c = T >= 6.95 && T < 7.3 ? mix(INK, WHT, map(T, 7.0, 7.3)) : WHT;
+    const c = T >= 6.95 && T < 7.3 ? mix(COB, WHT, map(T, 7.0, 7.3)) : WHT;
     particles(particleAlpha(), c);
 
     if (T > 14.72) {
@@ -502,6 +609,7 @@
       return;
     }
     if (warmKey !== `${W}x${H}`) { prepare(); warmKey = `${W}x${H}`; }
+    reelStage(); REEL.forEach((_, i) => reelFx(i)); // lo que no llegó a generarse antes se completa acá
     start(0);
   }
   const openBtn = document.getElementById('twenty');
@@ -530,12 +638,21 @@
     rw = innerWidth; rh = innerHeight;
     const at = T;
     sizeCanvas(); prepare(); warmKey = `${W}x${H}`;
+    reelStage(); REEL.forEach((_, i) => reelFx(i));
     if (at >= 14.45) start(14.45); else start(0);
   });
   // Se prepara antes de tiempo, para que al tocar el botón arranque sin esperas.
   const warm = () => {
     if (calm || tw.open) return;
-    const go = () => { if (tw.open) return; sizeCanvas(); prepare(); warmKey = `${W}x${H}`; };
+    const go = () => {
+      if (tw.open) return;
+      sizeCanvas(); prepare(); warmKey = `${W}x${H}`;
+      // Los efectos de luz se generan de a una palabra, para no trabar la página.
+      const idle = window.requestIdleCallback || ((c) => setTimeout(c, 120));
+      const key = warmKey; let i = 0;
+      const next = () => { if (tw.open || key !== warmKey || i >= REEL.length) return; if (!i) reelStage(); reelFx(i++); idle(next); };
+      setTimeout(() => idle(next), 2500); // espera a que la página termine de cargar
+    };
     (window.requestIdleCallback || ((c) => setTimeout(c, 200)))(go);
   };
   photo.addEventListener('load', warm);
