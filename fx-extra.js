@@ -1,5 +1,5 @@
 // Efectos diferidos. Para apagar uno, poné su valor en false.
-const FX = { flow: true, field: false, thread: true, titles: true, timeline: true, magnet: true, copy: true, konami: true, favicon: true, verbs: true };
+const FX = { ring: true, thread: true, titles: true, timeline: true, magnet: true, copy: true, konami: true, favicon: true, verbs: true };
 
 (() => {
   const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -123,73 +123,6 @@ const FX = { flow: true, field: false, thread: true, titles: true, timeline: tru
   addEventListener('load', () => { measure(); update(); });
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { measure(); update(); });
   measure(); update();
-
-  // Partículas que orbitan tu foto, como en el cierre de la función de 15 segundos.
-  const startField = () => {
-    if (!FX.field) return;
-    const hero = document.querySelector('.hero'), img = document.querySelector('.portrait img');
-    const cv = document.createElement('canvas');
-    cv.className = 'field';
-    cv.setAttribute('aria-hidden', 'true');
-    hero.prepend(cv);
-    const ctx = cv.getContext('2d');
-    let W = 0, H = 0, cx = 0, cy = 0, rad = 100, ps = [], visible = true, raf = 0, last = 0, slow = 0, frames = 0, t0 = 0;
-    let mx = -9999, my = -9999, limit = 0;
-    const size = () => {
-      const r = cv.getBoundingClientRect(), i = img.getBoundingClientRect(), d = Math.min(devicePixelRatio || 1, 1.5);
-      W = r.width; H = r.height;
-      cx = i.left - r.left + i.width / 2; cy = i.top - r.top + i.height / 2; rad = i.width / 2;
-      cv.width = W * d; cv.height = H * d;
-      ctx.setTransform(d, 0, 0, d, 0, 0);
-      const n = fine ? 340 : 160;
-      limit = n;
-      ps = Array.from({ length: n }, () => {
-        const spread = Math.random() ** 2.2;
-        return { a: Math.random() * 6.283, r: rad * (1.16 + spread * 0.95), v: (0.05 + Math.random() * 0.1) * (1.2 - spread * 0.7), s: 1.2 + Math.random() * 1.4, sx: Math.random() * W, sy: Math.random() * H, o: 0.28 + (1 - spread) * 0.62, ox: 0, oy: 0, d: Math.random() * 0.5 };
-      });
-      t0 = performance.now();
-    };
-    const out = (t) => 1 - (1 - t) ** 3;
-    const draw = (now) => {
-      raf = 0;
-      if (!visible || document.hidden || root.classList.contains('show-on')) return;
-      raf = requestAnimationFrame(draw);
-      const dt = Math.min(now - last, 50); last = now;
-      if (dt < 200) { frames++; if (dt > 26) slow++; }
-      if (frames >= 90) { if (slow > 45 && limit > 90) limit = Math.round(limit * 0.7); frames = 0; slow = 0; }
-      const T = (now - t0) / 1000;
-      ctx.clearRect(0, 0, W, H);
-      ctx.fillStyle = '#2438e8';
-      for (let i = 0; i < limit; i++) {
-        const p = ps[i];
-        p.a += p.v * dt * 0.001;
-        const e = out(clamp((T - p.d) / 1.4, 0, 1));
-        const rx = cx + Math.cos(p.a) * p.r, ry = cy + Math.sin(p.a) * p.r * 0.96;
-        const x = p.sx + (rx - p.sx) * e, y = p.sy + (ry - p.sy) * e;
-        const dx = x - mx, dy = y - my, d2 = dx * dx + dy * dy;
-        let tx = 0, ty = 0;
-        if (d2 < 19600) { const d = Math.sqrt(d2) || 1, f = (140 - d) / 140; tx = (dx / d) * f * 42; ty = (dy / d) * f * 42; }
-        p.ox += (tx - p.ox) * 0.09; p.oy += (ty - p.oy) * 0.09;
-        ctx.globalAlpha = p.o;
-        ctx.fillRect(x + p.ox, y + p.oy, p.s, p.s);
-      }
-      ctx.globalAlpha = 1;
-    };
-    const go = () => { if (!raf && visible && !document.hidden) { last = performance.now(); raf = requestAnimationFrame(draw); } };
-    size();
-    new IntersectionObserver(([e]) => { visible = e.isIntersecting; go(); }).observe(cv);
-    document.addEventListener('visibilitychange', go);
-    addEventListener('show-end', go);
-    let rt;
-    addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(size, 200); });
-    if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => setTimeout(size, 60));
-    if (fine) {
-      hero.addEventListener('pointermove', (e) => { const r = cv.getBoundingClientRect(); mx = e.clientX - r.left; my = e.clientY - r.top; });
-      hero.addEventListener('pointerleave', () => { mx = my = -9999; });
-    }
-    go();
-  };
-  (window.requestIdleCallback || ((f) => setTimeout(f, 300)))(startField);
 
   if (!fine || !FX.magnet) return;
 
