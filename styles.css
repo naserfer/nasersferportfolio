@@ -39,7 +39,7 @@ h1 span{display:inline-block}
 .plist li:last-child{border-bottom:1px solid var(--line)}
 .plist li>span:first-child{color:var(--muted)}
 .plist li>span:nth-child(2){font-weight:600;font-size:1.15rem}
-.plist li>span:last-child{color:var(--muted)}
+.plist li>span:nth-of-type(3){color:var(--muted)}
 .work-foot{margin-top:20px}
 .plist a,.work-foot a{color:var(--cobalt)}
 .ask{padding-block:0 clamp(56px,8vw,112px)}
@@ -256,3 +256,33 @@ html.intro .play{--cvs:2.3s}
 .nav nav a.lang{padding:0 7px;border:1px solid var(--line);border-radius:99px;font-size:.8125rem;font-weight:600;letter-spacing:.02em;line-height:1.6}
 .nav nav a.lang::after{display:none}
 .nav nav a.lang:hover{border-color:var(--cobalt)}
+
+/* El nombre hecho de partículas: el canvas va encima y el texto real sigue en el DOM. */
+.hero>canvas.nfx-c{position:absolute;z-index:2;pointer-events:none}
+#name.nfx .ltr{transform:none!important;color:inherit!important}
+#name.nfx-live .ltr{color:transparent!important}
+
+/* Dispositivos de la lista de proyectos: al costado en pantallas anchas, debajo de la fila en celular. */
+.work{position:relative}
+.dv{position:absolute;height:340px;transform:translateY(-50%);pointer-events:none;z-index:2}
+.dv canvas{display:block;width:100%;height:100%}
+.dv-btn{display:none}
+.plist.dv-in li{cursor:pointer}
+.plist.dv-in .dv{display:none;position:relative;grid-column:1/-1;width:100%;height:250px;transform:none}
+.plist.dv-in .dv-open .dv{display:block}
+.plist.dv-in .dv-btn{display:block;position:absolute;top:6px;right:0;width:44px;height:44px;border:0;padding:0;background:none;color:var(--cobalt);cursor:pointer}
+.dv-btn::before,.dv-btn::after{content:"";position:absolute;left:50%;top:50%;width:16px;height:2px;margin:-1px 0 0 -8px;background:currentColor;transition:transform .25s cubic-bezier(.2,.8,.2,1)}
+.dv-btn::after{transform:rotate(90deg)}
+.dv-open .dv-btn::after{transform:none}
+@media (hover:hover){.plist li:hover .dv-btn{color:#fff}}
+@media (max-width:860px){.plist li[data-device]{padding-right:48px}}
+@media (min-width:861px){.plist li[data-device]{padding-right:clamp(210px,21vw,320px)}}
+.dv-flat{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0;transition:opacity .25s}
+.dv-flat.on{opacity:1}
+.dv-flat img{display:block;object-fit:cover;background:var(--cobalt);border:6px solid #1a2233;box-shadow:0 22px 28px -20px rgba(18,26,43,.5)}
+.dv-flat.phone img{height:82%;aspect-ratio:540/1170;border-radius:20px}
+.dv-flat.laptop img{width:80%;aspect-ratio:1280/800;border-radius:10px 10px 0 0}
+.dv-flat.monitor img{width:84%;aspect-ratio:1280/720;border-radius:8px}
+.dv-flat::after{content:"";flex:none;background:#aeb4c2}
+.dv-flat.laptop::after{width:92%;height:9px;border-radius:2px 2px 10px 10px}
+.dv-flat.monitor::after{width:26%;height:26px;clip-path:polygon(38% 0,62% 0,62% 72%,100% 72%,100% 100%,0 100%,0 72%,38% 72%)}
