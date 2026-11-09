@@ -11,3 +11,8 @@ function layout() { fit(h1); fit(mailLink); }
 layout();
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(layout);
 addEventListener('resize', layout);
+
+// El selector de idioma recuerda la elección para las próximas visitas.
+document.querySelectorAll('a.lang').forEach((a) => a.addEventListener('click', () => {
+  document.cookie = `nf-lang=${a.dataset.lang}; path=/; max-age=31536000; samesite=lax`;
+}));

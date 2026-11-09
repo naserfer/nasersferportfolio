@@ -252,3 +252,7 @@ html.intro .play{--cvs:2.3s}
 /* Títulos y líneas en su propia capa: moverlos al scrollear no vuelve a pintar la página */
 .work h2,.exp h2,.ask h2,.stack-s h2{will-change:translate}
 .thread,.rows .tl{will-change:transform}
+/* Selector de idioma */
+.nav nav a.lang{padding:0 7px;border:1px solid var(--line);border-radius:99px;font-size:.8125rem;font-weight:600;letter-spacing:.02em;line-height:1.6}
+.nav nav a.lang::after{display:none}
+.nav nav a.lang:hover{border-color:var(--cobalt)}

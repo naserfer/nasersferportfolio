@@ -1,4 +1,16 @@
 (() => {
+  // Textos de la función en cada idioma. El idioma lo define <html lang>, que elige el servidor.
+  const EN = document.documentElement.lang.startsWith('en');
+  const ROOT = document.documentElement.dataset.root || '';
+  const TXT = EN ? {
+    mailTo: 'Email ', years: '+4 years in production', thousands: ['Thousands of people'], thousandsNarrow: ['Thousands', 'of people'],
+    apps: 'use my apps every day', agents: 'I direct AI agents', l1: ['I co-founded a software factory'], l1Narrow: ['I co-founded a', 'software factory'],
+    l2: ['and I own every delivery'], l2Narrow: ['and I own', 'every delivery'], role: 'Full Stack Developer in Asunción, Paraguay', kinds: ['Web', 'Mobile', 'Desktop'],
+  } : {
+    mailTo: 'Escribir a ', years: '+4 años en producción', thousands: ['Miles de personas'], thousandsNarrow: ['Miles de', 'personas'],
+    apps: 'usan mis apps cada día', agents: 'Dirijo agentes de IA', l1: ['Cofundé una fábrica de software'], l1Narrow: ['Cofundé una fábrica', 'de software'],
+    l2: ['y respondo por cada entrega'], l2Narrow: ['y respondo por', 'cada entrega'], role: 'Full Stack Developer en Asunción, Paraguay', kinds: ['Web', 'Móvil', 'Escritorio'],
+  };
   const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const fine = matchMedia('(hover: hover) and (pointer: fine)').matches;
   const hero = document.querySelector('.hero');
@@ -8,7 +20,7 @@
     const holder = host.firstElementChild;
     const text = holder.textContent;
     if (host.tagName === 'H1') host.setAttribute('aria-label', text);
-    else host.setAttribute('aria-label', 'Escribir a ' + text);
+    else host.setAttribute('aria-label', TXT.mailTo + text);
     holder.setAttribute('aria-hidden', 'true');
     holder.replaceChildren(...[...text].map((ch, i) => {
       const s = document.createElement('span');
@@ -167,7 +179,7 @@
     for (let i = 0; i < MAX; i++) { p[i * 2] = lerp(-W * margin, W * (1 + margin), Math.random()); p[i * 2 + 1] = lerp(-H * margin, H * (1 + margin), Math.random()); }
     return p;
   }
-  const REEL = ['Angular', 'React', 'Flutter', 'Node.js', 'Python', 'PostgreSQL', 'Docker', 'AWS', '', 'Web', 'Móvil', 'Escritorio'];
+  const REEL = ['Angular', 'React', 'Flutter', 'Node.js', 'Python', 'PostgreSQL', 'Docker', 'AWS', '', ...TXT.kinds];
   // Cuánto dura cada tecnología: arranca con calma y acelera, dentro del mismo tiempo total.
   const REEL_N = 8, REEL_DUR = [0.42, 0.36, 0.32, 0.28, 0.26, 0.26, 0.25, 0.25];
   const reelStep = (t) => {
@@ -177,7 +189,7 @@
     return { i, f: i < REEL_N ? s / REEL_DUR[i] : 0 };
   };
   const photo = new Image();
-  photo.src = 'images/foto-perfil.webp';
+  photo.src = ROOT + 'images/foto-perfil.webp';
 
   // Red de agentes: geometría propia para que las letras sean nítidas.
   function inPoly(x, y, poly) {
@@ -194,16 +206,18 @@
   }
   function buildNet(h, cx, cy) {
     const iw = 0.25 * h, gap = 0.14 * h, aw = 0.86 * h, total = iw + gap + aw;
-    const x0 = cx - total / 2, y0 = cy - h / 2, ax = x0 + iw + gap;
+    // En español la red dibuja IA; en inglés, AI, con la A primero.
+    const x0 = cx - total / 2, y0 = cy - h / 2, ax = EN ? x0 : x0 + iw + gap, xi = EN ? x0 + aw + gap : x0;
+    const gapMid = EN ? x0 + aw + gap / 2 : x0 + iw + gap / 2;
     const a = (u, v) => [ax + u * h, y0 + v * h];
     const mid = aw / h / 2, top = 0.115, foot = 0.27, apex = 0.2, barT = 0.56, barB = 0.72;
     // Borde interno de cada pierna: de la base hasta el vértice interno.
     const innerL = (v) => foot + ((mid - foot) * (1 - v)) / (1 - apex);
     const innerR = (v) => aw / h - innerL(v);
-    const I = [[x0, y0], [x0 + iw, y0], [x0 + iw, y0 + h], [x0, y0 + h]];
+    const I = [[xi, y0], [xi + iw, y0], [xi + iw, y0 + h], [xi, y0 + h]];
     const Aout = [a(0, 1), a(mid - top, 0), a(mid + top, 0), a(aw / h, 1), a(aw / h - foot, 1), a(innerR(barB), barB), a(innerL(barB), barB), a(foot, 1)];
     const Ahole = [a(mid, apex), a(innerR(barT), barT), a(innerL(barT), barT)];
-    const loops = [I, Aout, Ahole];
+    const loops = EN ? [Aout, Ahole, I] : [I, Aout, Ahole]; // la señal arranca en la primera letra
     const s = h / (W < 600 ? 10 : 12);
     const X = [], Y = [], edges = [], rim = [];
     const add = (x, y) => { X.push(x); Y.push(y); return X.length - 1; };
@@ -233,8 +247,8 @@
     }
     // Tres puentes unen la I con la A: una sola red.
     [0.32, 0.58, 0.84].forEach((v) => {
-      const yb = y0 + v * h, near = (test) => { let best = 0, bd = 1e9; for (let i = 0; i < rimCount; i++) if (test(X[i])) { const d = Math.abs(Y[i] - yb) + Math.abs(X[i] - (x0 + iw + gap * 0.5)) * 0.5; if (d < bd) { bd = d; best = i; } } return best; };
-      edges.push([near((x) => x <= x0 + iw + 1), near((x) => x >= ax - 1)]);
+      const yb = y0 + v * h, near = (test) => { let best = 0, bd = 1e9; for (let i = 0; i < rimCount; i++) if (test(X[i])) { const d = Math.abs(Y[i] - yb) + Math.abs(X[i] - gapMid) * 0.5; if (d < bd) { bd = d; best = i; } } return best; };
+      edges.push(EN ? [near((x) => x <= ax + aw + 1), near((x) => x >= xi - 1)] : [near((x) => x <= xi + iw + 1), near((x) => x >= ax - 1)]);
     });
     // Distancia de cada nodo al origen, siguiendo las conexiones.
     const adj = Array.from({ length: count }, () => []);
@@ -303,15 +317,15 @@
     const narrow = W < 600;
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     const fs = fit(['Full Stack'], W * 0.9, H * 0.36); fs.y = H * 0.46;
-    const fs2 = fit(['+4 años en producción'], W * 0.8, H * 0.07); fs2.y = fs.y + fs.px * 0.62 + fs2.px * 0.55;
+    const fs2 = fit([TXT.years], W * 0.8, H * 0.07); fs2.y = fs.y + fs.px * 0.62 + fs2.px * 0.55;
     const reel = fit(['PostgreSQL'], W * 0.84, H * 0.21);
     const rh = reel.px * 1.14;
-    const miles = fit(narrow ? ['Miles de', 'personas'] : ['Miles de personas'], W * 0.88, H * 0.38); miles.y = H * 0.45;
-    const miles2 = fit(['usan mis apps cada día'], W * 0.8, H * 0.07); miles2.y = miles.y + miles.h / 2 + miles2.px * 0.75;
+    const miles = fit(narrow ? TXT.thousandsNarrow : TXT.thousands, W * 0.88, H * 0.38); miles.y = H * 0.45;
+    const miles2 = fit([TXT.apps], W * 0.8, H * 0.07); miles2.y = miles.y + miles.h / 2 + miles2.px * 0.75;
     const netH = Math.min(H * 0.44, W * 0.66), netY = H * 0.41;
-    const ia2 = fit(['Dirijo agentes de IA'], W * 0.82, H * 0.08); ia2.y = Math.min(netY + netH / 2 + ia2.px * 1.05, H * 0.86);
-    const l1 = fit(narrow ? ['Cofundé una fábrica', 'de software'] : ['Cofundé una fábrica de software'], W * 0.86, H * 0.17);
-    const l2 = fit(narrow ? ['y respondo por', 'cada entrega'] : ['y respondo por cada entrega'], W * 0.86, H * 0.17);
+    const ia2 = fit([TXT.agents], W * 0.82, H * 0.08); ia2.y = Math.min(netY + netH / 2 + ia2.px * 1.05, H * 0.86);
+    const l1 = fit(narrow ? TXT.l1Narrow : TXT.l1, W * 0.86, H * 0.17);
+    const l2 = fit(narrow ? TXT.l2Narrow : TXT.l2, W * 0.86, H * 0.17);
     const gap = Math.max(l1.px, l2.px) * 0.55, total = l1.h + l2.h + gap;
     l1.y = H / 2 - total / 2 + l1.h / 2; l2.y = H / 2 + total / 2 - l2.h / 2;
 
@@ -319,7 +333,7 @@
     const bottom = narrow ? 150 : 104, area = H - bottom - 56;
     const dia = Math.min(area * 0.42, W * 0.42, 190), rad = dia / 2;
     const name = fit(['Naser Fernández'], W * 0.88, Math.min(area * 0.2, 120));
-    const role = fit(['Full Stack Developer en Asunción, Paraguay'], W * 0.86, 26, 500);
+    const role = fit([TXT.role], W * 0.86, 26, 500);
     const ringOuter = rad * 1.46, stack = ringOuter * 2 + name.px * 1.15 + role.px * 1.7;
     const top = 56 + (area - stack) / 2, cy = top + ringOuter;
     name.y = top + ringOuter * 2 + name.px * 0.68; role.y = name.y + name.px * 0.52 + role.px * 0.9;

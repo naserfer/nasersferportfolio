@@ -6,6 +6,7 @@ const FX = { ring: true, thread: true, titles: true, timeline: true, magnet: tru
   const fine = matchMedia('(hover: hover) and (pointer: fine)').matches;
   const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
   const root = document.documentElement;
+  const EN = root.lang.startsWith('en');
 
   // Copiar el correo funciona siempre, con o sin animaciones.
   if (FX.copy) {
@@ -13,8 +14,8 @@ const FX = { ring: true, thread: true, titles: true, timeline: true, magnet: tru
     btn.hidden = false;
     let t;
     btn.addEventListener('click', async () => {
-      try { await navigator.clipboard.writeText('naserfer97@gmail.com'); msg.textContent = 'Correo copiado'; }
-      catch { msg.textContent = 'No se pudo copiar. Escribí a naserfer97@gmail.com'; }
+      try { await navigator.clipboard.writeText('naserfer97@gmail.com'); msg.textContent = EN ? 'Email copied' : 'Correo copiado'; }
+      catch { msg.textContent = EN ? 'Could not copy. Email naserfer97@gmail.com' : 'No se pudo copiar. Escribí a naserfer97@gmail.com'; }
       clearTimeout(t); t = setTimeout(() => { msg.textContent = ''; }, 3500);
     });
   }
@@ -30,7 +31,7 @@ const FX = { ring: true, thread: true, titles: true, timeline: true, magnet: tru
       const el = document.createElement('div');
       el.className = 'signal';
       el.setAttribute('role', 'status');
-      el.innerHTML = '<span>Señal recibida. Hablemos.</span>';
+      el.innerHTML = EN ? '<span>Signal received. Let’s talk.</span>' : '<span>Señal recibida. Hablemos.</span>';
       document.body.append(el);
       requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('on')));
       setTimeout(() => el.classList.remove('on'), 2200);

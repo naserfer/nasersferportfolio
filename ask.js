@@ -1,5 +1,6 @@
 // El chat solo aparece si el servidor tiene la clave configurada.
 (async () => {
+  const EN = document.documentElement.lang.startsWith('en');
   const section = document.getElementById('preguntar');
   try {
     const health = await fetch('/api/ask');
@@ -14,15 +15,15 @@
   async function ask(question) {
     send.disabled = true;
     out.className = 'ask-out';
-    out.textContent = 'Buscando la respuesta…';
+    out.textContent = EN ? 'Finding the answer…' : 'Buscando la respuesta…';
     try {
-      const r = await fetch('/api/ask', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ question }) });
+      const r = await fetch('/api/ask', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ question, lang: EN ? 'en' : 'es' }) });
       const data = await r.json();
       if (!r.ok) throw new Error(data.error);
       out.textContent = data.answer;
     } catch (e) {
       out.className = 'ask-out error';
-      out.textContent = e.message || 'No se pudo responder ahora. Escribile a Naser a naserfer97@gmail.com.';
+      out.textContent = e.message || (EN ? 'Could not answer right now. Email Naser at naserfer97@gmail.com.' : 'No se pudo responder ahora. Escribile a Naser a naserfer97@gmail.com.');
     }
     send.disabled = false;
   }

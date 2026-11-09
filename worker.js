@@ -1,4 +1,4 @@
-// Responde /api/ask y sirve el resto del sitio como archivos estáticos.
+// Responde /api/ask, elige el idioma de la portada y sirve el resto del sitio como archivos estáticos.
 // Requiere el secreto ANTHROPIC_API_KEY cargado en Cloudflare.
 const PROFILE = `Naser Fernández Mancia es Full Stack Developer en Asunción, Paraguay, con más de 4 años de experiencia. Idiomas: español, inglés y portugués avanzados.
 Experiencia:
@@ -38,25 +38,56 @@ async function ask(request, env) {
   if (!env.ANTHROPIC_API_KEY) return json({ error: 'not_configured' }, 503);
   if (request.method === 'GET') return json({ ok: true });
   if (request.method !== 'POST') return json({ error: 'method' }, 405);
-  if (limited(request.headers.get('cf-connecting-ip') || 'local')) return json({ error: 'Hiciste muchas preguntas seguidas. Probá de nuevo en unos minutos.' }, 429);
-  let question = '';
-  try { question = String((await request.json()).question || '').trim(); } catch { /* cuerpo inválido */ }
-  if (!question || question.length > MAX_QUESTION) return json({ error: `Escribí una pregunta de hasta ${MAX_QUESTION} caracteres.` }, 400);
+  let question = '', en = false;
+  try { const body = await request.json(); question = String(body.question || '').trim(); en = body.lang === 'en'; } catch { /* cuerpo inválido */ }
+  if (limited(request.headers.get('cf-connecting-ip') || 'local')) return json({ error: en ? 'Too many questions in a row. Try again in a few minutes.' : 'Hiciste muchas preguntas seguidas. Probá de nuevo en unos minutos.' }, 429);
+  if (!question || question.length > MAX_QUESTION) return json({ error: en ? `Write a question of up to ${MAX_QUESTION} characters.` : `Escribí una pregunta de hasta ${MAX_QUESTION} caracteres.` }, 400);
   const r = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: { 'content-type': 'application/json', 'x-api-key': env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01' },
     body: JSON.stringify({ model: 'claude-haiku-5-5', max_tokens: 250, system: SYSTEM, messages: [{ role: 'user', content: question }] }),
   });
-  if (!r.ok) return json({ error: 'No se pudo responder ahora. Escribile a Naser a naserfer97@gmail.com.' }, 502);
+  if (!r.ok) return json({ error: en ? 'Could not answer right now. Email Naser at naserfer97@gmail.com.' : 'No se pudo responder ahora. Escribile a Naser a naserfer97@gmail.com.' }, 502);
   const data = await r.json();
   const answer = (data.content || []).filter((b) => b.type === 'text').map((b) => b.text).join(' ').trim();
   return json({ answer });
 }
 
+// Idioma de la portada: lo que eligió la persona con el selector y, si no eligió, el idioma de su navegador.
+// Español de cualquier país va en español; cualquier otro idioma, en inglés. Sin datos (buscadores), en español.
+function prefersEnglish(request) {
+  const header = request.headers.get('accept-language');
+  if (!header) return false;
+  let best = '', bestQ = -1;
+  header.split(',').forEach((part, i) => {
+    const [tag, ...params] = part.trim().toLowerCase().split(';');
+    const q = params.map((p) => p.trim()).find((p) => p.startsWith('q='));
+    const weight = (q ? parseFloat(q.slice(2)) : 1) - i * 1e-4; // a igual peso, gana el primero
+    if (tag && tag !== '*' && weight > bestQ) { bestQ = weight; best = tag; }
+  });
+  return best !== '' && !best.startsWith('es');
+}
+const COOKIE = 'nf-lang';
+const ONE_YEAR = 60 * 60 * 24 * 365;
+
+async function home(request, env, url) {
+  const asked = url.searchParams.get('lang'), cookie = (request.headers.get('cookie') || '').match(/(?:^|;\s*)nf-lang=(es|en)/);
+  const choice = asked === 'es' || asked === 'en' ? asked : cookie ? cookie[1] : null;
+  const english = choice ? choice === 'en' : prefersEnglish(request);
+  const headers = new Headers({ vary: 'Accept-Language, Cookie', 'cache-control': 'no-cache' });
+  if (asked === 'es' || asked === 'en') headers.append('set-cookie', `${COOKIE}=${asked}; Path=/; Max-Age=${ONE_YEAR}; SameSite=Lax; Secure`);
+  if (english) { headers.set('location', '/en/'); return new Response(null, { status: 302, headers }); }
+  const page = await env.ASSETS.fetch(new Request(new URL('/', url), request));
+  const res = new Response(page.body, page);
+  headers.forEach((v, k) => (k === 'set-cookie' ? res.headers.append(k, v) : res.headers.set(k, v)));
+  return res;
+}
+
 export default {
   fetch(request, env) {
-    const { pathname } = new URL(request.url);
-    if (pathname === '/api/ask') return ask(request, env);
+    const url = new URL(request.url);
+    if (url.pathname === '/api/ask') return ask(request, env);
+    if (url.pathname === '/' && (request.method === 'GET' || request.method === 'HEAD')) return home(request, env, url);
     return env.ASSETS.fetch(request);
   },
 };
