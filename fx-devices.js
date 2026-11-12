@@ -301,6 +301,18 @@ if (!coarse && !calm) list.addEventListener('pointermove', (e) => {
 if (low) useFlat();
 else try { startGL(); } catch (e) { useFlat(); }
 place();
+// En el celular el primer proyecto ya llega abierto, así se descubre sin tener que tocar el "+".
+// Solo si la lista todavía está debajo de la pantalla: abrirlo no mueve nada de lo que se está viendo.
+if (inline && list.getBoundingClientRect().top > innerHeight) show(base[0]);
+// Y el dispositivo abierto gira un poco según por dónde pasa en la pantalla al scrollear.
+if (!calm) addEventListener('scroll', () => {
+  if (!inline || want < 0 || mode !== 'gl' || !visible) return;
+  const r = stage.getBoundingClientRect();
+  if (r.bottom < 0 || r.top > innerHeight) return;
+  const q = Math.max(-0.6, Math.min(0.6, (r.top + r.height / 2) / innerHeight - 0.5));
+  ty = -0.34 - q * 0.9; tp = 0.12 + q * 0.3;
+  kick();
+}, { passive: true });
 let again = 0;
 addEventListener('resize', () => { clearTimeout(again); again = setTimeout(place, 160); });
 document.addEventListener('visibilitychange', kick);

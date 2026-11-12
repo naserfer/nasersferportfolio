@@ -14,7 +14,8 @@ cv.setAttribute('aria-hidden', 'true');
 const ctx = cv.getContext('2d');
 let ink, inkColor = '#121a2b', cobalt = '#2438e8'; // el texto dibujado una vez y los dos colores
 let D = 1, s = 4, n = 0, R = 100;   // escala, lado del fragmento, cantidad, radio de influencia
-let HX, HY, X, Y, VX, VY, M, P, C, S, ON; // origen, posición, velocidad, masa, empuje, desvío y estado de cada partícula
+let HX, HY, X, Y, VX, VY, M, P, C, S, ON, GX, GY, G; // + deriva y turno de cada una al deshacerse con el scroll
+let nameStart = 0, nameEnd = 1, sp = 0, dissolving = false, sraf = 0; // origen, posición, velocidad, masa, empuje, desvío y estado de cada partícula
 let ox = 0, oy = 0, zone = [0, 0, 0, 0];
 let built = false, live = false, visible = true, raf = 0, last = 0, timer = 0;
 let px = -1e5, py = -1e5, pvx = 0, pvy = 0, near = false, stirred = false, dirty = null;
@@ -91,6 +92,7 @@ function build() {
   HX = new Float32Array(n); HY = new Float32Array(n); X = new Float32Array(n); Y = new Float32Array(n);
   VX = new Float32Array(n); VY = new Float32Array(n); M = new Float32Array(n); ON = new Uint8Array(n);
   P = new Float32Array(n); C = new Float32Array(n); S = new Float32Array(n);
+  GX = new Float32Array(n); GY = new Float32Array(n); G = new Float32Array(n);
   for (let i = 0; i < n; i++) {
     X[i] = HX[i] = cells[i * 2] + ox; Y[i] = HY[i] = cells[i * 2 + 1] + oy;
     M[i] = 0.7 + Math.random() * 0.6;
@@ -98,6 +100,16 @@ function build() {
     const turn = (Math.random() - 0.5) * 1.5;
     P[i] = 0.35 + Math.random() ** 2 * 1.9; C[i] = Math.cos(turn); S[i] = Math.sin(turn);
   }
+  // Al scrollear el nombre se deshace de izquierda a derecha: cada partícula sale hacia arriba con su propio rumbo.
+  const RdD = R * D;
+  for (let i = 0; i < n; i++) {
+    const a = -Math.PI / 2 + (Math.random() - 0.5) * 2.4, d = (0.35 + Math.random() * 0.75) * RdD;
+    GX[i] = Math.cos(a) * d; GY[i] = Math.sin(a) * d;
+    G[i] = 0.65 * (HX[i] - ox) / sw + 0.35 * Math.random();
+  }
+  // Empieza a deshacerse cuando el nombre llega arriba de la pantalla y termina justo al salir.
+  nameStart = Math.max(0, r.top + scrollY - 40);
+  nameEnd = Math.max(nameStart + 60, r.bottom + scrollY - 10);
   const Rd = R * D;
   zone = [ox - Rd, oy - Rd, ox + sw + Rd, oy + sh + Rd];
   h1.dataset.particles = n;
@@ -112,7 +124,7 @@ function rest() {
   near = false; px = py = -1e5; dirty = null;
   if (live) { live = false; h1.classList.remove('nfx-live'); ctx.clearRect(0, 0, cv.width, cv.height); }
 }
-const kick = () => { if (!raf && built && visible) raf = requestAnimationFrame(tick); };
+const kick = () => { if (!raf && built && visible && !dissolving) raf = requestAnimationFrame(tick); };
 
 // Devuelve un rectángulo del canvas a su estado de reposo: el texto entero.
 function restore(b) {
@@ -181,7 +193,7 @@ function tick(t) {
 }
 
 function point(e) {
-  if (!built || !visible) return;
+  if (!built || !visible || dissolving) return;
   const b = cv.getBoundingClientRect();
   const x = (e.clientX - b.left) * D, y = (e.clientY - b.top) * D;
   const inside = x > zone[0] && y > zone[1] && x < zone[2] && y < zone[3];
@@ -196,17 +208,55 @@ hero.addEventListener('pointerdown', (e) => { if (e.pointerType !== 'mouse') poi
 hero.addEventListener('pointerup', (e) => { if (e.pointerType !== 'mouse') { clearTimeout(timer); timer = setTimeout(leave, 160); } }, { passive: true });
 hero.addEventListener('pointerleave', leave, { passive: true });
 hero.addEventListener('pointercancel', leave, { passive: true });
-addEventListener('scroll', leave, { passive: true });
+// Dibujo del nombre deshaciéndose: depende solo de cuánto se scrolleó, así que va y vuelve con el dedo.
+function dissolve() {
+  sraf = 0;
+  if (!built || !visible) return;
+  const p = Math.min(1, (scrollY - nameStart) / (nameEnd - nameStart));
+  if (p <= 0.004) { if (dissolving) { dissolving = false; rest(); } return; }
+  if (!dissolving) { rest(); dissolving = true; }
+  sp = p;
+  ctx.clearRect(0, 0, cv.width, cv.height);
+  ctx.drawImage(ink, ox, oy);
+  const k = sp * 1.5;
+  for (let i = 0; i < n; i++) if (k - G[i] * 0.5 > 0) ctx.clearRect(HX[i], HY[i], s, s);
+  // Cuatro tandas por opacidad: cada una es un solo fill, sin importar cuántas partículas haya.
+  for (let b = 0; b < 4; b++) {
+    ctx.beginPath();
+    for (let i = 0; i < n; i++) {
+      let e = k - G[i] * 0.5;
+      if (e <= 0) continue;
+      if (e > 1) e = 1;
+      if (Math.min(3, (e * 4) | 0) !== b) continue;
+      const ee = e * e * (3 - 2 * e);
+      ctx.rect(HX[i] + GX[i] * ee, HY[i] + GY[i] * ee, s, s);
+    }
+    ctx.globalAlpha = 1 - (b + 0.5) / 4.4;
+    ctx.fillStyle = b ? cobalt : inkColor;
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+  if (!live) { live = true; h1.classList.add('nfx-live'); }
+}
+addEventListener('scroll', () => { leave(); if (!sraf) sraf = requestAnimationFrame(dissolve); }, { passive: true });
 document.addEventListener('visibilitychange', () => { if (document.hidden) rest(); });
-if ('IntersectionObserver' in window) new IntersectionObserver((es) => { visible = es[es.length - 1].isIntersecting; if (!visible) rest(); }).observe(h1);
+if ('IntersectionObserver' in window) new IntersectionObserver((es) => { visible = es[es.length - 1].isIntersecting; if (visible) dissolve(); else if (!dissolving) rest(); }).observe(h1);
 
 // Se arma cuando las letras terminaron de entrar, y de nuevo si cambia el tamaño o llega la fuente.
 let again = 0;
-const rebuild = () => { built = false; rest(); clearTimeout(again); again = setTimeout(build, 180); };
+let lastW = innerWidth;
+const rebuild = (e) => {
+  // En el celular la barra del navegador cambia el alto al scrollear: eso no cambia el nombre, no se rearma.
+  if (e && e.type === 'resize' && innerWidth === lastW) return;
+  lastW = innerWidth;
+  built = false; dissolving = false; rest(); clearTimeout(again);
+  again = setTimeout(() => { build(); dissolve(); }, 180);
+};
 const settled = () => Promise.all(h1.getAnimations({ subtree: true }).map((an) => an.finished.catch(() => {})));
 const fonts = document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve();
 fonts.then(settled).then(() => {
   build();
+  dissolve();
   addEventListener('resize', rebuild);
   if (document.fonts && document.fonts.addEventListener) document.fonts.addEventListener('loadingdone', rebuild);
 });
