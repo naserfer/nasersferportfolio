@@ -8,6 +8,7 @@ Experiencia:
 - Oficial de Negocios, Innovaciones Digitales, Financiera Cefisa (2021 a 2022).
 - Soporte de TI, Copaco S.A. (2019 a 2021).
 Proyectos:
+- Contratos Abiertos (contratos-abiertos.pages.dev): web app de Ardentium que muestra en qué gasta el Estado paraguayo con datos abiertos de la DNCP: cuánto se adjudicó cada semana, a qué instituciones y proveedores, con cuántos oferentes, rubros, precios comparados y licitaciones abiertas. Stack: React 19, TypeScript, Vite, Supabase, Cloudflare Pages.
 - KarúBox (karubox.com.py): punto de venta en la nube para lomiterías y restaurantes, producto propio de Ardentium. Ventas, mesas, inventario automático, fidelidad, impresión remota en cocina, tablero de cocina en vivo y reportes en tiempo real. Stack: TypeScript, React, Node.js, PostgreSQL.
 - MotelApp: app de escritorio de recepción y administración para un motel de 23 habitaciones. Tablero en vivo, cuentas, cobro, tickets térmicos y analítica. Offline-first, sincroniza con la nube y hace un respaldo cifrado diario. Stack: Tauri 2, Rust, React, TypeScript, SQLite, Supabase, ESC/POS.
 - Sabor del Chipá: tienda online que arma el pedido y lo envía por WhatsApp.
