@@ -4,6 +4,13 @@
 const list = document.querySelector('.plist');
 const work = list.closest('.work');
 const rows = [...list.querySelectorAll('li[data-device]')];
+// Cada captura es un "slot": la de la fila, y una más por cada enlace de la fila que tenga su propia captura
+// (Mi Personal y Activate comparten fila, pero cada uno muestra su pantalla).
+const slots = [], base = rows.map((li, r) => {
+  const first = slots.push({ r, dev: li.dataset.device, shot: li.dataset.shot }) - 1;
+  li.querySelectorAll('a[data-shot]').forEach((a) => { a.dataset.slot = slots.push({ r, dev: li.dataset.device, shot: a.dataset.shot }) - 1; });
+  return first;
+});
 const root = document.documentElement;
 const ROOT = root.dataset.root || '';
 const EN = root.lang.startsWith('en');
@@ -140,7 +147,7 @@ function model(type) {
 function texture(i) {
   if (tex[i] !== undefined) return;
   tex[i] = null;
-  const img = new Image(), tall = rows[i].dataset.device === 'phone';
+  const img = new Image(), tall = slots[i].dev === 'phone';
   img.onload = () => {
     if (mode !== 'gl' || gl.isContextLost()) return;
     const c = document.createElement('canvas');
@@ -156,7 +163,7 @@ function texture(i) {
     tex[i] = t;
     if (shown === i || want === i) kick();
   };
-  img.src = ROOT + rows[i].dataset.shot;
+  img.src = ROOT + slots[i].shot;
 }
 
 function draw() {
@@ -164,7 +171,7 @@ function draw() {
   gl.clearColor(0, 0, 0, 0);
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
   if (shown < 0 || vis <= 0) return;
-  const d = model(rows[shown].dataset.device), asp = cv.width / cv.height, P = persp(asp);
+  const d = model(slots[shown].dev), asp = cv.width / cv.height, P = persp(asp);
   const e = 1 - (1 - vis) ** 3, fit = Math.min(VIEW * 0.76 / d.h, VIEW * asp * 0.78 / d.w);
   const spin = (1 - e) * (shown === want ? -0.9 : 0.9), size = fit * (0.9 + 0.1 * e);
   const MV = mats(T(0, 0, -DIST), RX(pitch), RY(yaw + spin), Sc(size, size, size));
@@ -217,17 +224,19 @@ function useFlat() {
   flat.className = 'dv-flat';
   flat.appendChild(Object.assign(new Image(), { alt: '', decoding: 'async' }));
   stage.replaceChildren(flat);
-  if (want >= 0) show(want);
+  if (want >= 0) { const w = want; want = -1; show(w); }
 }
 
 function show(i) {
   if (inline) {
-    rows.forEach((li, j) => { li.classList.toggle('dv-open', j === i); li.querySelector('.dv-btn').setAttribute('aria-expanded', j === i); });
-    if (i >= 0) { rows[i].appendChild(stage); size(); }
+    const r = i >= 0 ? slots[i].r : -1;
+    rows.forEach((li, j) => { li.classList.toggle('dv-open', j === r); li.querySelector('.dv-btn').setAttribute('aria-expanded', j === r); });
+    if (r >= 0 && stage.parentNode !== rows[r]) { rows[r].appendChild(stage); size(); }
   }
+  if (i === want) return;
   want = i;
   if (mode === 'flat') {
-    if (i >= 0) { flat.firstChild.src = ROOT + rows[i].dataset.shot; flat.className = 'dv-flat ' + rows[i].dataset.device; }
+    if (i >= 0) { flat.firstChild.src = ROOT + slots[i].shot; flat.className = 'dv-flat ' + slots[i].dev; }
     requestAnimationFrame(() => flat.classList.toggle('on', i >= 0));
     return;
   }
@@ -267,9 +276,17 @@ rows.forEach((li, i) => {
   b.setAttribute('aria-label', EN ? `Show the ${name} screenshot` : `Ver la captura de ${name}`);
   b.setAttribute('aria-expanded', 'false');
   li.appendChild(b);
-  li.addEventListener('pointerenter', (e) => { if (!inline && e.pointerType === 'mouse') show(i); });
-  li.addEventListener('focusin', () => { if (!inline) show(i); });
-  li.addEventListener('click', (e) => { if (inline && !e.target.closest('a')) show(want === i ? -1 : i); });
+  li.addEventListener('pointerenter', (e) => { if (!inline && e.pointerType === 'mouse') show(base[i]); });
+  li.addEventListener('focusin', (e) => { if (!inline) show(e.target.dataset.slot ? +e.target.dataset.slot : base[i]); });
+  li.addEventListener('click', (e) => { if (inline && !e.target.closest('a')) show(want >= 0 && slots[want].r === i ? -1 : base[i]); });
+  // Pasar sobre un enlace con captura propia cambia la pantalla; al salir vuelve la de la fila.
+  li.querySelectorAll('a[data-shot]').forEach((a) => {
+    a.addEventListener('pointerenter', (e) => { if (!inline && e.pointerType === 'mouse') show(+a.dataset.slot); });
+    a.addEventListener('pointerleave', (e) => { if (!inline && e.pointerType === 'mouse' && li.matches(':hover')) show(base[i]); });
+  });
+  // En el celular, con la fila abierta, las capturas de la fila se turnan solas.
+  const own = [base[i], ...[...li.querySelectorAll('a[data-shot]')].map((a) => +a.dataset.slot)];
+  if (own.length > 1 && !calm) setInterval(() => { if (inline && want >= 0 && slots[want].r === i && visible && !document.hidden) show(own[(own.indexOf(want) + 1) % own.length]); }, 3200);
 });
 list.addEventListener('pointerleave', () => { if (!inline) show(-1); });
 list.addEventListener('focusout', (e) => { if (!inline && !list.contains(e.relatedTarget)) show(-1); });
