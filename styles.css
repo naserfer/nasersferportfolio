@@ -252,10 +252,13 @@ html.intro .play{--cvs:2.3s}
 /* Títulos y líneas en su propia capa: moverlos al scrollear no vuelve a pintar la página */
 .work h2,.exp h2,.ask h2,.stack-s h2{will-change:translate}
 .thread,.rows .tl{will-change:transform}
-/* Selector de idioma */
-.nav nav a.lang{padding:0 7px;border:1px solid var(--line);border-radius:99px;font-size:.8125rem;font-weight:600;letter-spacing:.02em;line-height:1.6}
-.nav nav a.lang::after{display:none}
-.nav nav a.lang:hover{border-color:var(--cobalt)}
+/* Selector de idioma: los dos idiomas a la vista y el actual marcado */
+.langs{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:99px;padding:2px;font-size:.8125rem;font-weight:600;letter-spacing:.02em;line-height:1.6}
+.langs>*{padding:0 8px;border-radius:99px}
+.langs .lang-on{background:var(--ink);color:#fff}
+.nav nav .langs a.lang{color:var(--muted)}
+.nav nav .langs a.lang::after{display:none}
+.nav nav .langs a.lang:hover{color:var(--cobalt)}
 
 /* El nombre hecho de partículas: el canvas va encima y el texto real sigue en el DOM. */
 .hero>canvas.nfx-c{position:absolute;z-index:2;pointer-events:none}
@@ -286,3 +289,17 @@ html.intro .play{--cvs:2.3s}
 .dv-flat::after{content:"";flex:none;background:#aeb4c2}
 .dv-flat.laptop::after{width:92%;height:9px;border-radius:2px 2px 10px 10px}
 .dv-flat.monitor::after{width:26%;height:26px;clip-path:polygon(38% 0,62% 0,62% 72%,100% 72%,100% 100%,0 100%,0 72%,38% 72%)}
+
+/* Elegir el idioma del CV */
+.cvpick{border:0;padding:28px;width:min(360px,calc(100vw - 32px));background:var(--paper);color:var(--ink);box-shadow:0 30px 60px -20px rgba(18,26,43,.45)}
+.cvpick::backdrop{background:rgba(18,26,43,.45)}
+.cvpick h2{font-size:1.5rem;line-height:1.1;margin:0 0 6px;letter-spacing:-.01em}
+.cvpick p{margin:0 0 20px;color:var(--muted);font-size:.95rem}
+.cvpick-opts{display:grid;gap:10px}
+.cvpick-opts a{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border:1px solid var(--line);color:var(--ink);font-weight:600;text-decoration:none}
+.cvpick-opts a:hover,.cvpick-opts a:focus-visible{border-color:var(--cobalt);color:var(--cobalt)}
+.cvpick-opts small{color:var(--muted);font-weight:400}
+.cvpick-x{position:absolute;top:8px;right:8px;width:40px;height:40px;border:0;background:none;color:var(--muted);font-size:1.4rem;line-height:1;cursor:pointer}
+.cvpick-x:hover{color:var(--ink)}
+@media (prefers-reduced-motion:no-preference){.cvpick[open]{animation:cvpickin .22s cubic-bezier(.2,.8,.2,1)}}
+@keyframes cvpickin{from{opacity:0;transform:translateY(10px)}}
