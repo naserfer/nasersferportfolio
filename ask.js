@@ -4,7 +4,7 @@
   const section = document.getElementById('preguntar');
   try {
     const health = await fetch('/api/ask');
-    if (!health.ok) return;
+    if (!health.ok || !(await health.json()).ok) return;
   } catch { return; }
   section.hidden = false;
   const form = document.getElementById('ask-form');

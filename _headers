@@ -1,0 +1,21 @@
+# Headers de los archivos estáticos (la portada y /api los pone worker.js).
+# Si cambiás el <script> inline del <head>, actualizá su hash sha256 en la CSP de acá y de worker.js.
+/*
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'sha256-xXC7OgtWcnz1qDDagGuifdLPVJWlAro7LdXrDXM3+mI=' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://cloudflareinsights.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()
+
+/fonts/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/images/*
+  Cache-Control: public, max-age=604800
+
+/img/*
+  Cache-Control: public, max-age=604800
+
+/files/*
+  Cache-Control: public, max-age=86400

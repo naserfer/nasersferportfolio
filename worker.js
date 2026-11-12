@@ -23,6 +23,17 @@ Si la pregunta no trata sobre Naser o su trabajo, indicá que solo podés respon
 
 ${PROFILE}`;
 
+// Los mismos headers de seguridad que _headers, para lo que responde el worker (portada y /api).
+const SECURITY = {
+  'Content-Security-Policy': "default-src 'self'; script-src 'self' 'sha256-xXC7OgtWcnz1qDDagGuifdLPVJWlAro7LdXrDXM3+mI=' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://cloudflareinsights.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'",
+  'Strict-Transport-Security': "max-age=31536000; includeSubDomains",
+  'X-Content-Type-Options': "nosniff",
+  'X-Frame-Options': "DENY",
+  'Referrer-Policy': "strict-origin-when-cross-origin",
+  'Permissions-Policy': "camera=(), microphone=(), geolocation=(), payment=()",
+};
+const secure = (res) => { const r = new Response(res.body, res); for (const [k, v] of Object.entries(SECURITY)) r.headers.set(k, v); return r; };
+
 const MAX_QUESTION = 300, LIMIT = 10, WINDOW_MS = 10 * 60 * 1000;
 const hits = new Map();
 const json = (body, status = 200) => new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' } });
@@ -36,8 +47,9 @@ function limited(ip, now = Date.now()) {
 }
 
 async function ask(request, env) {
+  // La portada pregunta si el chat está activo: responde 200 en ambos casos para no dejar errores en la consola.
+  if (request.method === 'GET') return json({ ok: !!env.ANTHROPIC_API_KEY });
   if (!env.ANTHROPIC_API_KEY) return json({ error: 'not_configured' }, 503);
-  if (request.method === 'GET') return json({ ok: true });
   if (request.method !== 'POST') return json({ error: 'method' }, 405);
   let question = '', en = false;
   try { const body = await request.json(); question = String(body.question || '').trim(); en = body.lang === 'en'; } catch { /* cuerpo inválido */ }
@@ -87,8 +99,8 @@ async function home(request, env, url) {
 export default {
   fetch(request, env) {
     const url = new URL(request.url);
-    if (url.pathname === '/api/ask') return ask(request, env);
-    if (url.pathname === '/' && (request.method === 'GET' || request.method === 'HEAD')) return home(request, env, url);
+    if (url.pathname === '/api/ask') return ask(request, env).then(secure);
+    if (url.pathname === '/' && (request.method === 'GET' || request.method === 'HEAD')) return home(request, env, url).then(secure);
     return env.ASSETS.fetch(request);
   },
 };
