@@ -86,7 +86,7 @@ const FX = { ring: true, thread: true, titles: true, timeline: true, magnet: tru
   // Pienso, Orquesto, Entrego: una línea se dibuja y cada palabra sube al pasar.
   if (FX.verbs) {
     const section = document.querySelector('.verbs');
-    section.querySelectorAll('h2').forEach((h) => { h.innerHTML = `<span>${h.textContent}</span>`; });
+    section.querySelectorAll('h3').forEach((h) => { h.innerHTML = `<span>${h.textContent}</span>`; });
     root.classList.add('js-verbs');
     const io = new IntersectionObserver(([e]) => {
       if (e.isIntersecting) { section.classList.add('in'); io.disconnect(); }
