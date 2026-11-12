@@ -309,3 +309,16 @@ html.intro .play{--cvs:2.3s}
 
 /* Enlaces del menú con área de toque cómoda sin mover el diseño */
 .nav nav a{padding-block:8px;margin-block:-8px}
+
+/* Proyectos en pantallas táctiles: entrada escalonada y la fila del centro encendida */
+@media (hover:none){
+ .js-rows .plist li{opacity:0;transform:translateY(18px);transition:opacity .5s ease var(--d,0ms),transform .6s cubic-bezier(.2,.8,.2,1) var(--d,0ms)}
+ .js-rows .plist li.in{opacity:1;transform:none}
+ .js-rows .plist li>span{transition:transform .4s cubic-bezier(.2,.8,.2,1),color .3s}
+ .js-rows .plist li::before{transition:transform .45s cubic-bezier(.2,.8,.2,1)}
+ .js-rows .plist li.lit::before{transform:scaleX(1)}
+ .js-rows .plist li.dv-open::before{bottom:250px}
+ .js-rows .plist li.lit>span{transform:translateX(10px)}
+ .js-rows .plist li.lit>span,.js-rows .plist li.lit a,.js-rows .plist li.lit .dv-btn{color:#fff}
+ .js-rows .plist li a::after{transition:transform .28s cubic-bezier(.2,.8,.2,1)}
+}

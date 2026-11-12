@@ -1,5 +1,5 @@
 // Efectos diferidos. Para apagar uno, poné su valor en false.
-const FX = { ring: true, thread: true, titles: true, timeline: true, magnet: true, copy: true, konami: true, favicon: true, verbs: true };
+const FX = { ring: true, thread: true, titles: true, timeline: true, magnet: true, copy: true, konami: true, favicon: true, verbs: true, rows: true };
 
 (() => {
   const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -82,6 +82,27 @@ const FX = { ring: true, thread: true, titles: true, timeline: true, magnet: tru
     rowsBox.prepend(tl);
     root.classList.add('js-tl');
     rows = [...rowsBox.querySelectorAll('.row')].map((el) => ({ el, y: 0 }));
+  }
+  // Proyectos en pantallas táctiles: las filas entran escalonadas y la que pasa por el centro
+  // de la pantalla se enciende como el hover de la computadora. Solo transform, opacidad y color.
+  if (FX.rows && !fine && !calm && 'IntersectionObserver' in window) {
+    const list = document.querySelector('.plist'), items = [...list.querySelectorAll('li')];
+    root.classList.add('js-rows');
+    items.forEach((li, i) => li.style.setProperty('--d', `${(i % 5) * 70}ms`));
+    const enter = new IntersectionObserver((es) => es.forEach((e) => {
+      if (e.isIntersecting) { e.target.classList.add('in'); enter.unobserve(e.target); }
+    }), { threshold: 0.15 });
+    items.forEach((li) => enter.observe(li));
+    // Una franja fina en el medio de la pantalla decide qué fila está encendida.
+    // Si dos filas tocan la franja a la vez, queda encendida solo la más cercana al centro.
+    const band = new Set();
+    const lit = new IntersectionObserver((es) => {
+      es.forEach((e) => (e.isIntersecting ? band.add(e.target) : band.delete(e.target)));
+      let best = null, d = Infinity;
+      band.forEach((li) => { const r = li.getBoundingClientRect(), k = Math.abs(r.top + Math.min(r.height, 140) / 2 - innerHeight / 2); if (k < d) { d = k; best = li; } });
+      items.forEach((li) => li.classList.toggle('lit', li === best));
+    }, { rootMargin: '-46% 0px -46% 0px' });
+    items.forEach((li) => lit.observe(li));
   }
   // Pienso, Orquesto, Entrego: una línea se dibuja y cada palabra sube al pasar.
   if (FX.verbs) {
